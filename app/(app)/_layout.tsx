@@ -1,6 +1,8 @@
 import { Tabs } from 'expo-router';
 import { Text, type ColorValue } from 'react-native';
 
+import { colors } from '@/theme/tokens';
+
 /**
  * Tab icons.
  *
@@ -12,18 +14,25 @@ function TabIcon({ glyph, color }: { glyph: string; color: ColorValue }) {
   return <Text style={{ color, fontSize: 20 }}>{glyph}</Text>;
 }
 
+/**
+ * Four tabs (PRODUCT_SPEC.md §3).
+ *
+ * Session results are deliberately absent: they are the consequence of ending a
+ * scan, not a place the user navigates to, so they are pushed from Today,
+ * Insights, and scan completion instead of occupying a fifth tab.
+ */
 export default function AppLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#5B8DEF',
-        tabBarInactiveTintColor: '#6B6B7B',
+        tabBarActiveTintColor: colors.accent.DEFAULT,
+        tabBarInactiveTintColor: colors.ink.faint,
         tabBarStyle: {
-          backgroundColor: '#14141B',
-          borderTopColor: '#262631',
+          backgroundColor: colors.canvas.raised,
+          borderTopColor: colors.hairline,
         },
-        sceneStyle: { backgroundColor: '#0B0B0F' },
+        sceneStyle: { backgroundColor: colors.canvas.DEFAULT },
       }}
     >
       <Tabs.Screen
@@ -41,9 +50,16 @@ export default function AppLayout() {
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name="insights"
         options={{
-          title: 'Settings',
+          title: 'Insights',
+          tabBarIcon: ({ color }) => <TabIcon glyph="◫" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
           tabBarIcon: ({ color }) => <TabIcon glyph="⚙" color={color} />,
         }}
       />

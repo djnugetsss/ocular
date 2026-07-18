@@ -27,11 +27,17 @@ module.exports = {
         },
         hairline: '#262631',
       },
+      // Named steps from the type scale in PRODUCT_SPEC.md §5.2. Body (16),
+      // callout (14), and caption (12) map onto Tailwind's default
+      // text-base/text-sm/text-xs and are intentionally not redefined here.
       fontSize: {
         metric: ['44px', { lineHeight: '48px', letterSpacing: '-1.5px' }],
+        title1: ['30px', { lineHeight: '36px', letterSpacing: '-0.5px' }],
+        title2: ['22px', { lineHeight: '28px', letterSpacing: '-0.2px' }],
       },
       borderRadius: {
         card: '18px',
+        sheet: '24px',
       },
     },
   },

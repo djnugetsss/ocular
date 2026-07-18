@@ -1,15 +1,21 @@
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, Text, View } from 'react-native';
+import { FlatList, RefreshControl, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ErrorState, InlineError } from '@/components/ui/ErrorState';
 import { MetricCard } from '@/components/ui/MetricCard';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useAuthStore } from '@/features/auth/auth-store';
+import { SessionRow } from '@/features/sessions/components/SessionRow';
 import { listRecentSessions } from '@/features/sessions/session-repository';
+import { blinkRateTone, colors } from '@/theme/tokens';
 import type { Session } from '@/lib/supabase/database.types';
 
 export default function DashboardScreen() {
   const user = useAuthStore((state) => state.user);
+  const router = useRouter();
 
   const [sessions, setSessions] = useState<Session[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -56,10 +62,23 @@ export default function DashboardScreen() {
   // count as much as a 20-minute one when describing the day.
   const todayRate = todayMinutes > 0 ? todayBlinks / todayMinutes : null;
 
+  // First load shows the shape of what is coming rather than a spinner, so the
+  // layout does not jump when data lands.
   if (isLoading) {
+    return <DashboardSkeleton />;
+  }
+
+  // Only take over the whole screen when there is genuinely nothing to show.
+  // A failed refresh over readable data is handled by the inline banner below.
+  if (error && sessions.length === 0) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-canvas">
-        <ActivityIndicator color="#5B8DEF" />
+      <SafeAreaView className="flex-1 bg-canvas" edges={['top']}>
+        <ErrorState
+          title="Couldn't load your sessions"
+          message={error}
+          onRetry={() => void handleRefresh()}
+          isRetrying={isRefreshing}
+        />
       </SafeAreaView>
     );
   }
@@ -71,16 +90,24 @@ export default function DashboardScreen() {
         keyExtractor={(session) => session.id}
         contentContainerClassName="px-4 pb-8"
         refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} tintColor="#5B8DEF" />
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.accent.DEFAULT}
+          />
         }
         ListHeaderComponent={
           <View className="pb-4 pt-2">
-            <Text className="text-3xl font-semibold text-ink">Today</Text>
+            <Text accessibilityRole="header" className="text-title1 font-semibold text-ink">
+              Today
+            </Text>
 
             {error ? (
-              <View className="mt-4 rounded-card border border-signal-bad/40 bg-signal-bad/10 p-4">
-                <Text className="text-sm text-signal-bad">{error}</Text>
-              </View>
+              <InlineError
+                className="mt-4"
+                message="Couldn't refresh — showing earlier data."
+                onRetry={() => void handleRefresh()}
+              />
             ) : null}
 
             <View className="mt-5 flex-row gap-3">
@@ -89,15 +116,7 @@ export default function DashboardScreen() {
                 label="Avg blink rate"
                 value={todayRate === null ? '—' : todayRate.toFixed(0)}
                 unit="/min"
-                tone={
-                  todayRate === null
-                    ? 'neutral'
-                    : todayRate < 8
-                      ? 'bad'
-                      : todayRate < 12
-                        ? 'warn'
-                        : 'ok'
-                }
+                tone={blinkRateTone(todayRate)}
               />
               <MetricCard
                 className="flex-1"
@@ -107,57 +126,65 @@ export default function DashboardScreen() {
               />
             </View>
 
-            <Text className="mb-2 mt-8 text-xs font-medium uppercase tracking-wide text-ink-faint">
-              Recent sessions
-            </Text>
+            {sessions.length > 0 ? (
+              <Text className="mb-2 mt-8 text-xs font-medium uppercase tracking-wide text-ink-faint">
+                Recent sessions
+              </Text>
+            ) : null}
           </View>
         }
         ListEmptyComponent={
-          <View className="items-center gap-2 px-6 py-16">
-            <Text className="text-base font-medium text-ink">No sessions yet</Text>
-            <Text className="text-center text-sm leading-5 text-ink-muted">
-              Open the Scan tab and run your first measurement to start building a baseline.
-            </Text>
-          </View>
+          <EmptyState
+            glyph="◎"
+            title="No check-ins yet"
+            body="Run your first scan to see your baseline. It takes about two minutes."
+            action={{
+              label: 'Start your first scan',
+              onPress: () => router.navigate('/(app)/scan'),
+            }}
+          />
         }
-        renderItem={({ item }) => <SessionRow session={item} />}
+        renderItem={({ item }) => (
+          <SessionRow
+            session={item}
+            // Session results are a Phase 2 screen; until it exists the rows
+            // stay non-interactive rather than advertising a tap that does
+            // nothing.
+          />
+        )}
         ItemSeparatorComponent={() => <View className="h-2" />}
       />
     </SafeAreaView>
   );
 }
 
-function SessionRow({ session }: { session: Session }) {
-  const started = new Date(session.started_at);
-  const minutes = (session.duration_seconds ?? 0) / 60;
-
+/** Mirrors the loaded layout so the transition into real data is positional. */
+function DashboardSkeleton() {
   return (
-    <View
-      accessible
-      accessibilityLabel={`Session on ${started.toLocaleDateString()}, ${session.blink_count} blinks over ${minutes.toFixed(0)} minutes`}
-      className="flex-row items-center justify-between rounded-card border border-hairline bg-canvas-raised p-4"
-    >
-      <View className="gap-1">
-        <Text className="text-base font-medium text-ink">
-          {started.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-          {' · '}
-          {started.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+    <SafeAreaView className="flex-1 bg-canvas" edges={['top']}>
+      <View className="px-4 pt-2">
+        <Text accessibilityRole="header" className="text-title1 font-semibold text-ink">
+          Today
         </Text>
-        <Text className="text-sm text-ink-muted">
-          {minutes < 1 ? '<1' : minutes.toFixed(0)} min · {session.blink_count} blinks
-        </Text>
-      </View>
 
-      <View className="items-end gap-1">
-        <Text className="text-lg font-semibold text-ink">
-          {session.blinks_per_minute?.toFixed(0) ?? '—'}
-          <Text className="text-sm font-normal text-ink-faint"> /min</Text>
-        </Text>
-        {session.posture_score !== null ? (
-          <Text className="text-xs text-ink-faint">Posture {session.posture_score.toFixed(0)}</Text>
-        ) : null}
+        <View
+          accessibilityLabel="Loading your sessions"
+          accessibilityLiveRegion="polite"
+          className="mt-5 flex-row gap-3"
+        >
+          <Skeleton className="h-[104px] flex-1" />
+          <Skeleton className="h-[104px] flex-1" />
+        </View>
+
+        <Skeleton className="mb-3 mt-8 h-3 w-32 rounded-md" />
+
+        <View className="gap-2">
+          <Skeleton className="h-[76px]" />
+          <Skeleton className="h-[76px]" />
+          <Skeleton className="h-[76px]" />
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

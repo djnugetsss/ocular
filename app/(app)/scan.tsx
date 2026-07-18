@@ -9,6 +9,7 @@ import { MetricCard } from '@/components/ui/MetricCard';
 import { useAuthStore } from '@/features/auth/auth-store';
 import { saveSession } from '@/features/sessions/session-repository';
 import { LandmarkOverlay } from '@/features/vision/components/LandmarkOverlay';
+import { StatusPill } from '@/features/vision/components/StatusPill';
 import { useCameraPermission } from '@/features/vision/use-camera-permission';
 import { useFaceTracking } from '@/features/vision/use-face-tracking';
 
@@ -179,47 +180,6 @@ export default function ScanScreen() {
         />
       </View>
     </SafeAreaView>
-  );
-}
-
-function StatusPill({
-  status,
-  isCalibrated,
-  error,
-}: {
-  status: string;
-  isCalibrated: boolean;
-  error?: string;
-}) {
-  const text =
-    status === 'error'
-      ? (error ?? 'Tracking failed')
-      : status === 'idle'
-        ? 'Ready'
-        : status === 'starting'
-          ? 'Starting camera…'
-          : status === 'searching'
-            ? 'Looking for your face'
-            : isCalibrated
-              ? 'Tracking'
-              : 'Calibrating — keep your eyes open';
-
-  const tone =
-    status === 'error'
-      ? 'bg-signal-bad/20 text-signal-bad'
-      : status === 'tracking' && isCalibrated
-        ? 'bg-signal-ok/20 text-signal-ok'
-        : 'bg-black/50 text-ink';
-
-  return (
-    <View className={`rounded-full px-4 py-2 ${tone.split(' ')[0]}`}>
-      <Text
-        accessibilityLiveRegion="polite"
-        className={`text-sm font-medium ${tone.split(' ')[1]}`}
-      >
-        {text}
-      </Text>
-    </View>
   );
 }
 
