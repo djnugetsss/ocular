@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  # A new push makes an in-flight run for the same ref obsolete.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Typecheck, lint, and test
+    runs-on: ubuntu-latest
+
+    env:
+      # `src/lib/env.ts` validates configuration at import time, so the Jest run
+      # needs syntactically valid values. These are placeholders and reach no
+      # network — real credentials belong in repository secrets.
+      EXPO_PUBLIC_SUPABASE_URL: https://ci.supabase.co
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Test
+        run: npm test -- --ci
+
+  # The Swift in modules/ocular-vision is only compiled on macOS, and a runner
+  # minute there costs ten of Linux — so this runs on native-affecting changes
+  # rather than on every documentation typo.
+  build-ios:
+    name: Compile iOS
+    runs-on: macos-15
+    if: github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'native')
+
+    env:
+      EXPO_PUBLIC_SUPABASE_URL: https://ci.supabase.co
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: false
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install CocoaPods
+        run: gem install cocoapods --no-document
+
+      - name: Prebuild
+        run: npx expo prebuild --platform ios --clean
+
+      - name: Build
+        # Code signing is skipped: this job proves the Swift compiles and links,
+        # not that it can be distributed. Signed builds go through EAS.
+        run: |
+          xcodebuild \
+            -workspace ios/*.xcworkspace \
+            -scheme "$(ls ios | grep -m1 '\.xcworkspace$' | sed 's/\.xcworkspace//')" \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            build

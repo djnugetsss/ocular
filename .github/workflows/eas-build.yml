@@ -1,0 +1,40 @@
+name: EAS Build
+
+# Manual only. EAS builds consume paid build minutes and produce artifacts that
+# get installed on real devices, so they should be deliberate rather than
+# triggered by every merge.
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: Build profile
+        type: choice
+        required: true
+        default: preview
+        options: [development, preview, production]
+
+jobs:
+  build:
+    name: Build (${{ inputs.profile }})
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        # Environment values come from EAS environment variables rather than
+        # this workflow, so production credentials never pass through GitHub.
+        run: eas build --platform ios --profile ${{ inputs.profile }} --non-interactive --no-wait

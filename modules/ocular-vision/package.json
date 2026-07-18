@@ -1,0 +1,7 @@
+{
+  "name": "ocular-vision",
+  "version": "0.1.0",
+  "description": "Native bridge to Apple's Vision framework for real-time face landmarks, blink detection, and head pose estimation.",
+  "main": "index.ts",
+  "private": true
+}
