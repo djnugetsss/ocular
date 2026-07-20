@@ -282,9 +282,21 @@ Everything below was executed against this tree, not assumed:
 | `pod install`                     | `OcularVision` pod integrated                   |
 | `xcodebuild … build`              | **BUILD SUCCEEDED** — all 7 Swift files compile |
 
-**Not yet verified:** runtime behavior on hardware. The Swift compiles and links,
-but no frame has been through the pipeline. Blink thresholds in particular are
-derived from the literature and need calibration against real faces — see §9.
+**Hardware status (updated 2026-07-19):** the first physical-device run
+happened. The pipeline runs end to end — face detection, blink counting, and
+session persistence all worked on a real face. It also surfaced real bugs,
+since fixed: the landmark overlay was drawn sideways (Vision-oriented points
+were passed to `layerPointConverted(fromCaptureDevicePoint:)`, which expects
+sensor-space points — `OcularVisionView.devicePoint(fromOrientedPoint:)` now
+inverts the EXIF orientation first), and capture interruptions exposed gaps in
+the JS layer (session duration counted backgrounded time; the UI blink counter
+followed the native count across its deliberate post-interruption reset). The
+JS aggregator now pauses across interruptions and owns the displayed session
+total. Posture scoring also changed after the run: it now scores drift from a
+per-session baseline rather than alignment with the camera, which had pinned
+every phone-in-hand session near 100 (see `session-aggregator.ts`). Blink
+thresholds remain literature-derived and still need calibration against more
+faces, glasses, and low light — see §9.
 
 ---
 
@@ -292,14 +304,12 @@ derived from the literature and need calibration against real faces — see §9.
 
 ### Immediate — required before the app is usable
 
-1. **Provision Supabase.** Create the project, apply
-   `supabase/migrations/20260718000000_initial_schema.sql`, put real values in
-   `.env.local`. The checked-in `.env.local` holds placeholders.
-2. **Run on hardware.** `npm run ios:device`. The Simulator has no camera; the
-   module reports `isSupported: false` and the Scan tab says so explicitly.
+1. ~~**Provision Supabase.**~~ Done — project provisioned, migrations applied
+   (see `supabase/migrations/`).
+2. ~~**Run on hardware.**~~ Done 2026-07-19 — see §8 for what the run found.
 3. **Tune blink thresholds.** `BlinkDetectorConfiguration` values are
-   literature-derived starting points. Validate against recorded sessions,
-   especially with glasses and in low light.
+   literature-derived starting points. The first device run looked correct
+   informally; still needs validation across faces, glasses, and low light.
 
 ### Near term
 

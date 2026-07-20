@@ -8,7 +8,8 @@ import type {
 
 import { SessionAggregator, type SessionSummary } from '@/features/vision/session-aggregator';
 
-export type TrackingStatus = 'idle' | 'starting' | 'tracking' | 'searching' | 'error';
+export type TrackingStatus =
+  'idle' | 'starting' | 'tracking' | 'searching' | 'interrupted' | 'error';
 
 interface UseFaceTrackingOptions {
   /**
@@ -27,6 +28,13 @@ interface FaceTrackingState {
   isActive: boolean;
   /** True once the blink detector has established a per-face baseline. */
   isCalibrated: boolean;
+  /**
+   * Blinks counted since `start()`, from the JS aggregator. Unlike
+   * `frame.blink.blinkCount`, this survives interruptions — the native
+   * detector deliberately resets its count when the capture session resumes,
+   * which made the on-screen counter appear to lose the user's blinks.
+   */
+  blinkCount: number;
 
   start: () => void;
   stop: () => SessionSummary | null;
@@ -59,6 +67,7 @@ export function useFaceTracking(options: UseFaceTrackingOptions = {}): FaceTrack
   const [isActive, setIsActive] = useState(false);
   const [error, setError] = useState<VisionErrorEvent | null>(null);
   const [sessionState, setSessionState] = useState<SessionStateEvent['state']>('idle');
+  const [blinkCount, setBlinkCount] = useState(0);
 
   const aggregatorRef = useRef<SessionAggregator | null>(null);
   // Mirrors `isActive` for use inside event handlers. Native events can arrive
@@ -71,6 +80,7 @@ export function useFaceTracking(options: UseFaceTrackingOptions = {}): FaceTrack
     aggregatorRef.current = new SessionAggregator(new Date());
     isActiveRef.current = true;
     setError(null);
+    setBlinkCount(0);
     setIsActive(true);
   }, []);
 
@@ -94,9 +104,21 @@ export function useFaceTracking(options: UseFaceTrackingOptions = {}): FaceTrack
   const handleBlink = useCallback((event: { nativeEvent: BlinkEvent }) => {
     if (!isActiveRef.current) return;
     aggregatorRef.current?.addBlink(event.nativeEvent);
+    // One state write per blink, not per frame — blinks arrive a few times a
+    // minute, so this is cheap, and it keeps the visible counter continuous
+    // across the native detector's interruption resets.
+    setBlinkCount((count) => count + 1);
   }, []);
 
   const handleSessionStateChange = useCallback((event: { nativeEvent: SessionStateEvent }) => {
+    // Interrupted time is not measurement time: no frames arrive while the
+    // camera is suspended, so the aggregator's clock pauses with it. Resuming
+    // on any 'running' transition is safe — resume without a pause is a no-op.
+    if (event.nativeEvent.state === 'interrupted') {
+      aggregatorRef.current?.pause();
+    } else if (event.nativeEvent.state === 'running') {
+      aggregatorRef.current?.resume();
+    }
     setSessionState(event.nativeEvent.state);
   }, []);
 
@@ -119,6 +141,10 @@ export function useFaceTracking(options: UseFaceTrackingOptions = {}): FaceTrack
   const status = useMemo<TrackingStatus>(() => {
     if (error || sessionState === 'failed') return 'error';
     if (!isActive) return 'idle';
+    // Before this case existed, an interruption fell through to 'starting' and
+    // the UI claimed "Starting camera…" while the camera was actually paused
+    // by iOS — misleading exactly when the user most needs the truth.
+    if (sessionState === 'interrupted') return 'interrupted';
     if (sessionState !== 'running') return 'starting';
     return frame?.hasFace ? 'tracking' : 'searching';
   }, [error, sessionState, isActive, frame?.hasFace]);
@@ -148,6 +174,7 @@ export function useFaceTracking(options: UseFaceTrackingOptions = {}): FaceTrack
     error,
     isActive,
     isCalibrated: frame?.blink?.isCalibrated ?? false,
+    blinkCount,
     start,
     stop,
     viewProps,

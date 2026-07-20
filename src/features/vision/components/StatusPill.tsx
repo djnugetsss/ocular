@@ -53,6 +53,13 @@ function describe(status: TrackingStatus, isCalibrated: boolean, error?: string 
       return { text: 'Ready when you are', tone: TONES.neutral };
     case 'starting':
       return { text: 'Starting camera…', tone: TONES.neutral };
+    case 'interrupted':
+      // Calm and truthful: iOS has suspended the camera (call, backgrounding,
+      // Split View). Not an error tone — nothing is broken, and the session
+      // clock is paused rather than counting the gap. The copy names no
+      // specific cause because the native reasons vary and guessing wrong
+      // would be worse than being general.
+      return { text: 'Paused — camera unavailable', tone: TONES.neutral };
     case 'searching':
       return { text: 'Looking for you', tone: TONES.neutral };
     case 'tracking':

@@ -909,5 +909,49 @@ feature count, throughout.
 
 ---
 
+## Progress log
+
+Deliberate amendments only; the review body above is left as written on
+2026-07-19 and this log records what has changed since.
+
+**2026-07-19 — Polish pass (Milestone C, partial).** Shipped: SF Symbols via
+`expo-symbols` behind a typed `Icon` wrapper (tab bar, InfoRows, GoalCards,
+EmptyStates, onboarding chevron, welcome hero `eye.fill`); `ink-faint`
+lightened to `#7E7E8F` for WCAG AA caption contrast; hardcoded hex swept into
+tokens; auth screens moved onto the named type scale with form-level error
+slots and a modal grabber; sign-in "eye-health" copy fixed; dark keyboard
+(`keyboardAppearance`) and `userInterfaceStyle: 'dark'`; button press-scale
+spring and animated onboarding progress dots; Scan idle rest state (breathing
+oval + "Camera stays off until you begin") with 24 pt preview bottom radius;
+Scan thresholds deduped into `blinkRateTone`. Still open from Milestone C:
+haptics (`expo-haptics` not yet added), WellnessRing, real app icon, Dynamic
+Type clamps.
+
+**2026-07-19 — First device test + fixes.** First hardware run surfaced five
+issues (recorded in session memory); all fixed same day: (1) landmark mesh
+rendered sideways — `OcularVisionView` now inverts the EXIF orientation
+before `layerPointConverted` (the old code treated Vision-oriented points as
+sensor-space points); (2) interruptions — the aggregator gained
+`pause`/`resume` so backgrounded time no longer counts as measurement,
+`TrackingStatus` gained an honest `interrupted` case ("Paused — camera
+unavailable"), and the Blinks tile now shows the JS session total, which
+survives the native detector's deliberate post-interruption reset; (3) auth
+footers rebuilt as single nested Text runs to fix baseline misalignment; (4)
+goals-screen copy now states check-ins are always user-initiated; (5)
+**posture scoring redefined by product decision (Ansh):** score = drift from
+a per-session baseline (first ~30 stable samples, ~2 s), not alignment with
+the camera — camera-relative scoring pinned everyone at ~100. Sessions
+shorter than the baseline window report `null`. Documented trade-off:
+start-slumped-stay-slumped scores well; copy must describe *change within
+the session*, never absolute posture. §3's scan-state design and the §10
+checklist are unchanged by any of this.
+
+**Next session:** Milestone A — Session Results screen (`session/[id]` +
+`baseline.ts` + delete + save-retry banner), wire `SessionRow` taps, scan
+timer + duration chips + auto-complete with `Toast` replacing the remaining
+alerts (checklist tasks 1–5).
+
+---
+
 *End of design review. This document freezes the product vision; changes to
 it should be deliberate, written, and rare.*

@@ -124,14 +124,39 @@ final class OcularVisionView: ExpoView {
   ///
   /// Must be called on the main thread, since it reads layer state.
   private func previewPoint(fromVisionPoint point: CGPoint) -> CGPoint {
-    // Vision's origin is bottom-left; capture-device space is top-left.
-    let devicePoint = FaceGeometry.flipVertically(point)
+    // Vision's origin is bottom-left in the *oriented* image; flip to top-left
+    // first, then undo the EXIF orientation to reach capture-device space.
+    let oriented = FaceGeometry.flipVertically(point)
+    let devicePoint = devicePoint(fromOrientedPoint: oriented)
     let layerPoint = previewLayer.layerPointConverted(fromCaptureDevicePoint: devicePoint)
 
     let size = previewLayer.bounds.size
     guard size.width > 0, size.height > 0 else { return .zero }
 
     return CGPoint(x: layerPoint.x / size.width, y: layerPoint.y / size.height)
+  }
+
+  /// Undoes the EXIF orientation the capture pipeline declares to Vision,
+  /// taking a top-left-origin point from Vision's *oriented* (upright) space
+  /// back to the sensor's *native* space — which is what
+  /// `layerPointConverted(fromCaptureDevicePoint:)` actually expects.
+  ///
+  /// Feeding it oriented points directly is the bug that drew the landmark
+  /// mesh sideways: the conversion then applied the portrait rotation a second
+  /// time. The cases here must stay the exact inverses of
+  /// `FaceTrackingSession.visionOrientation`:
+  ///
+  /// - front → `.leftMirrored` (EXIF 5), a pure transpose, whose inverse is
+  ///   the same transpose;
+  /// - back → `.right` (EXIF 6), a 90° clockwise rotation
+  ///   `upright(x, y) = native(y, 1 − x)`, inverted below.
+  private func devicePoint(fromOrientedPoint point: CGPoint) -> CGPoint {
+    switch cameraPosition {
+    case .front:
+      return CGPoint(x: point.y, y: point.x)
+    default:
+      return CGPoint(x: point.y, y: 1.0 - point.x)
+    }
   }
 
   private func previewRect(fromVisionRect rect: CGRect) -> CGRect {

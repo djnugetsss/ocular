@@ -157,12 +157,13 @@ export default function SignUpScreen() {
             />
           </View>
 
-          <View className="mt-8 flex-row justify-center gap-1">
-            <Text className="text-sm text-ink-muted">Already have an account?</Text>
-            <Link href="/(auth)/sign-in" className="text-sm font-medium text-accent">
+          {/* Single Text run for shared baseline — see the sign-in footer. */}
+          <Text className="mt-8 text-center text-sm text-ink-muted">
+            Already have an account?{' '}
+            <Link href="/(auth)/sign-in" className="font-medium text-accent">
               Sign in
             </Link>
-          </View>
+          </Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

@@ -130,8 +130,9 @@ export default function GoalsScreen() {
             value={dailyTarget}
             onChange={setDailyTarget}
           />
-          <Text className="text-xs text-ink-faint">
-            A realistic target you can keep beats an ambitious one you ignore.
+          <Text className="text-xs leading-5 text-ink-faint">
+            You start every check-in yourself — Ocular never measures on its own. A realistic target
+            beats an ambitious one.
           </Text>
         </View>
 

@@ -67,7 +67,41 @@ describe('SessionAggregator', () => {
 
     // The unstable sample must not drag the average off neutral.
     expect(summary.meanYaw).toBe(0);
-    expect(summary.postureScore).toBe(100);
+  });
+
+  it('scores posture as drift from the session baseline, not the camera', () => {
+    const aggregator = new SessionAggregator(new Date());
+    const slumped = { yaw: 10, pitch: -8, roll: 3, stability: 1 };
+
+    // A user who starts off-axis and holds that position has not drifted —
+    // the score measures change within the session, not camera alignment.
+    for (let i = 0; i < 40; i += 1) aggregator.addFrame(frame({ headPose: slumped }));
+
+    expect(aggregator.summarize().postureScore).toBe(100);
+  });
+
+  it('penalizes drift away from the starting pose', () => {
+    const aggregator = new SessionAggregator(new Date());
+
+    // Baseline window at neutral, then a slump past the deviation ceiling.
+    for (let i = 0; i < 30; i += 1)
+      aggregator.addFrame(frame({ headPose: { yaw: 0, pitch: 0, roll: 0, stability: 1 } }));
+    for (let i = 0; i < 10; i += 1)
+      aggregator.addFrame(frame({ headPose: { yaw: 0, pitch: -35, roll: 0, stability: 1 } }));
+
+    expect(aggregator.summarize().postureScore).toBe(0);
+  });
+
+  it('returns null posture for sessions shorter than the baseline window', () => {
+    const aggregator = new SessionAggregator(new Date());
+    for (let i = 0; i < 10; i += 1) aggregator.addFrame(frame());
+
+    const summary = aggregator.summarize();
+
+    // Too short to establish what the user drifted *from* — no honest score
+    // exists, though the descriptive angle means are still reported.
+    expect(summary.postureScore).toBeNull();
+    expect(summary.meanYaw).toBe(0);
   });
 
   it('ignores pose but still counts coverage for faceless frames', () => {
@@ -93,6 +127,46 @@ describe('SessionAggregator', () => {
     expect(summary.meanYaw).toBeNull();
     expect(summary.postureScore).toBeNull();
     expect(summary.meanBlinkDurationMs).toBeNull();
+  });
+
+  it('excludes interrupted time from duration and blink rate', () => {
+    const aggregator = new SessionAggregator(new Date('2026-07-18T10:00:00Z'));
+    aggregator.addFrame(frame());
+    for (let i = 0; i < 5; i += 1) aggregator.addBlink(blink(120));
+
+    // One minute measured, one minute backgrounded, then ended.
+    aggregator.pause(new Date('2026-07-18T10:01:00Z'));
+    aggregator.resume(new Date('2026-07-18T10:02:00Z'));
+
+    const summary = aggregator.summarize(new Date('2026-07-18T10:02:00Z'));
+
+    // 5 blinks over 1 measured minute — not 2.5 over 2 wall-clock minutes.
+    expect(summary.durationSeconds).toBe(60);
+    expect(summary.blinksPerMinute).toBe(5);
+  });
+
+  it('counts a still-open interruption up to the end time', () => {
+    const aggregator = new SessionAggregator(new Date('2026-07-18T10:00:00Z'));
+    aggregator.addFrame(frame());
+
+    // Session ends while still interrupted (stopped from the background).
+    aggregator.pause(new Date('2026-07-18T10:01:00Z'));
+
+    const summary = aggregator.summarize(new Date('2026-07-18T10:03:00Z'));
+    expect(summary.durationSeconds).toBe(60);
+  });
+
+  it('treats repeated pause and stray resume calls as no-ops', () => {
+    const aggregator = new SessionAggregator(new Date('2026-07-18T10:00:00Z'));
+    aggregator.addFrame(frame());
+
+    aggregator.resume(new Date('2026-07-18T10:00:30Z')); // never paused
+    aggregator.pause(new Date('2026-07-18T10:01:00Z'));
+    aggregator.pause(new Date('2026-07-18T10:01:30Z')); // must keep the first start
+    aggregator.resume(new Date('2026-07-18T10:02:00Z'));
+
+    const summary = aggregator.summarize(new Date('2026-07-18T10:02:00Z'));
+    expect(summary.durationSeconds).toBe(60);
   });
 
   it('stays usable after summarizing', () => {

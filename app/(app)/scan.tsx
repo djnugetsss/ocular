@@ -26,9 +26,10 @@ import { blinkRateTone, colors } from '@/theme/tokens';
 export default function ScanScreen() {
   const user = useAuthStore((state) => state.user);
   const { permission, isLoading, request, openSettings, isSupported } = useCameraPermission();
-  const { frame, status, error, isActive, isCalibrated, start, stop, viewProps } = useFaceTracking({
-    landmarks: true,
-  });
+  const { frame, status, error, isActive, isCalibrated, blinkCount, start, stop, viewProps } =
+    useFaceTracking({
+      landmarks: true,
+    });
 
   const [previewSize, setPreviewSize] = useState({ width: 0, height: 0 });
   const [isSaving, setIsSaving] = useState(false);
@@ -142,7 +143,10 @@ export default function ScanScreen() {
           <MetricCard
             className="flex-1"
             label="Blinks"
-            value={String(blink?.blinkCount ?? 0)}
+            // The aggregator's session total, not the native per-frame count —
+            // the native detector resets across interruptions, which made this
+            // tile visibly drop to zero after backgrounding.
+            value={String(blinkCount)}
             hint={
               blink?.lastBlinkDurationMs
                 ? `Last ${Math.round(blink.lastBlinkDurationMs)} ms`

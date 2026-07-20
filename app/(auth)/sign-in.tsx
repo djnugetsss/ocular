@@ -109,12 +109,15 @@ export default function SignInScreen() {
             />
           </View>
 
-          <View className="mt-8 flex-row justify-center gap-1">
-            <Text className="text-sm text-ink-muted">New to Ocular?</Text>
-            <Link href="/(auth)/sign-up" className="text-sm font-medium text-accent">
+          {/* One Text run rather than siblings in a flex-row: nested text
+              shares a single baseline, so the label and link cannot render
+              vertically offset from each other. */}
+          <Text className="mt-8 text-center text-sm text-ink-muted">
+            New to Ocular?{' '}
+            <Link href="/(auth)/sign-up" className="font-medium text-accent">
               Create an account
             </Link>
-          </View>
+          </Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
