@@ -30,7 +30,10 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     orientation: 'portrait',
     icon: './assets/icon.png',
     scheme: variant.scheme,
-    userInterfaceStyle: 'automatic',
+    // The app is dark-only by design (PRODUCT_SPEC.md §5.1); pinning the
+    // interface style keeps system chrome (alerts, share sheets) from
+    // rendering light against the dark canvas.
+    userInterfaceStyle: 'dark',
     // The splash screen is configured through the expo-splash-screen plugin
     // below; SDK 57 removed the top-level `splash` key.
     assetBundlePatterns: ['**/*'],

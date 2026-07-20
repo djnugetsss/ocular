@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 import Animated, {
   Easing,
@@ -12,8 +12,10 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Button } from '@/components/ui/Button';
+import { Icon } from '@/components/ui/Icon';
 import { OnboardingPage } from '@/features/onboarding/OnboardingPage';
 import { useRecordOnboardingStep } from '@/features/onboarding/use-onboarding-step';
+import { colors } from '@/theme/tokens';
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -56,14 +58,20 @@ export default function WelcomeScreen() {
       }
     >
       <View className="items-center py-6">
-        <Animated.View
-          style={eyeStyle}
+        {/* An outer hairline ring gives the mark depth without a shadow —
+            depth in this palette comes from canvas steps, never elevation. */}
+        <View
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
-          className="h-24 w-24 items-center justify-center rounded-full bg-accent-soft"
+          className="h-28 w-28 items-center justify-center rounded-full border border-hairline"
         >
-          <Text className="text-5xl text-accent">◉</Text>
-        </Animated.View>
+          <Animated.View
+            style={eyeStyle}
+            className="h-24 w-24 items-center justify-center rounded-full bg-accent-soft"
+          >
+            <Icon name="eye.fill" size={44} color={colors.accent.DEFAULT} />
+          </Animated.View>
+        </View>
       </View>
     </OnboardingPage>
   );

@@ -50,7 +50,7 @@ function describe(status: TrackingStatus, isCalibrated: boolean, error?: string 
     case 'error':
       return { text: error ?? 'Tracking stopped', tone: TONES.error };
     case 'idle':
-      return { text: 'Ready', tone: TONES.neutral };
+      return { text: 'Ready when you are', tone: TONES.neutral };
     case 'starting':
       return { text: 'Starting camera…', tone: TONES.neutral };
     case 'searching':

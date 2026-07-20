@@ -135,7 +135,7 @@ export default function DashboardScreen() {
         }
         ListEmptyComponent={
           <EmptyState
-            glyph="◎"
+            symbol="eye"
             title="No check-ins yet"
             body="Run your first scan to see your baseline. It takes about two minutes."
             action={{

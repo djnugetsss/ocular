@@ -63,19 +63,19 @@ export default function CameraPermissionScreen() {
     >
       <View className="gap-6">
         <InfoRow
-          glyph="▶"
+          symbol="camera"
           tone="accent"
           title="Only during a check-in"
           body="The camera turns on when you start a scan and turns off the moment it ends. Never in the background."
         />
         <InfoRow
-          glyph="◉"
+          symbol="record.circle"
           tone="accent"
           title="Always visible"
           body="An on-device badge shows whenever the camera is active, and iOS shows its own green dot as independent proof."
         />
         <InfoRow
-          glyph="⚙"
+          symbol="gearshape"
           tone="neutral"
           title="Change it anytime"
           body="You can grant or revoke camera access later from Profile, or from iOS Settings."

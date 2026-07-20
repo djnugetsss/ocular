@@ -2,6 +2,7 @@ import { forwardRef } from 'react';
 import { Text, TextInput, View, type TextInputProps } from 'react-native';
 
 import { cn } from '@/lib/cn';
+import { colors } from '@/theme/tokens';
 
 interface TextFieldProps extends TextInputProps {
   label: string;
@@ -22,9 +23,12 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
         // Errors are conveyed by a red border as well as by text; the hint
         // makes the reason available to VoiceOver, which cannot see the border.
         accessibilityHint={error ?? undefined}
-        placeholderTextColor="#6B6B7B"
+        placeholderTextColor={colors.ink.faint}
+        // The app is dark-only; without this iOS shows a light keyboard that
+        // flashbangs the canvas every time a field focuses.
+        keyboardAppearance="dark"
         className={cn(
-          'h-14 rounded-card border bg-canvas-raised px-4 text-base text-ink',
+          'min-h-14 rounded-card border bg-canvas-raised px-4 text-base text-ink',
           error ? 'border-signal-bad' : 'border-hairline'
         )}
         {...props}

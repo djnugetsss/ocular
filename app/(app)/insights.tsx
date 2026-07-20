@@ -131,7 +131,7 @@ export default function InsightsScreen() {
         }
         ListEmptyComponent={
           <EmptyState
-            glyph="◫"
+            symbol="chart.bar"
             title="Nothing to chart yet"
             body="Your history builds as you check in. Trends appear once there are a few sessions to compare."
             action={{

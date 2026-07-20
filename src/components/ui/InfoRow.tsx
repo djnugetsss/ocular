@@ -1,20 +1,23 @@
 import { Text, View } from 'react-native';
+import type { SFSymbol } from 'expo-symbols';
 
+import { Icon } from '@/components/ui/Icon';
 import { cn } from '@/lib/cn';
+import { colors } from '@/theme/tokens';
 
 interface InfoRowProps {
-  /** Leading glyph. Decorative — the title and body carry the meaning. */
-  glyph: string;
+  /** Leading SF Symbol. Decorative — the title and body carry the meaning. */
+  symbol: SFSymbol;
   title: string;
   body: string;
   tone?: 'neutral' | 'accent' | 'ok';
   className?: string;
 }
 
-const GLYPH_TONE = {
-  neutral: 'bg-canvas-overlay text-ink-muted',
-  accent: 'bg-accent-soft text-accent',
-  ok: 'bg-signal-ok/15 text-signal-ok',
+const TONE = {
+  neutral: { container: 'bg-canvas-overlay', color: colors.ink.muted },
+  accent: { container: 'bg-accent-soft', color: colors.accent.DEFAULT },
+  ok: { container: 'bg-signal-ok/15', color: colors.signal.ok },
 } as const;
 
 /**
@@ -24,7 +27,7 @@ const GLYPH_TONE = {
  * is to explain rather than to collect input. Grouped for accessibility so
  * VoiceOver reads each row as one statement instead of three fragments.
  */
-export function InfoRow({ glyph, title, body, tone = 'neutral', className }: InfoRowProps) {
+export function InfoRow({ symbol, title, body, tone = 'neutral', className }: InfoRowProps) {
   return (
     <View
       accessible
@@ -34,10 +37,10 @@ export function InfoRow({ glyph, title, body, tone = 'neutral', className }: Inf
       <View
         className={cn(
           'h-10 w-10 shrink-0 items-center justify-center rounded-full',
-          GLYPH_TONE[tone]
+          TONE[tone].container
         )}
       >
-        <Text className={cn('text-lg', GLYPH_TONE[tone].split(' ')[1])}>{glyph}</Text>
+        <Icon name={symbol} size={18} color={TONE[tone].color} />
       </View>
 
       <View className="flex-1 gap-1">

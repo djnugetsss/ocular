@@ -1,6 +1,8 @@
 import { Pressable, Text, View } from 'react-native';
 
+import { Icon } from '@/components/ui/Icon';
 import { cn } from '@/lib/cn';
+import { colors } from '@/theme/tokens';
 import type { GoalOption } from '@/features/onboarding/steps';
 
 interface GoalCardProps {
@@ -31,15 +33,17 @@ export function GoalCard({ option, isSelected, onPress }: GoalCardProps) {
       )}
     >
       <View className="flex-row items-start justify-between">
-        <Text className={cn('text-xl', isSelected ? 'text-accent' : 'text-ink-faint')}>
-          {option.glyph}
-        </Text>
-        {isSelected ? <Text className="text-sm text-accent">✓</Text> : null}
+        <Icon
+          name={option.symbol}
+          size={20}
+          color={isSelected ? colors.accent.DEFAULT : colors.ink.faint}
+        />
+        {isSelected ? (
+          <Icon name="checkmark.circle.fill" size={16} color={colors.accent.DEFAULT} />
+        ) : null}
       </View>
 
-      <Text className={cn('text-[15px] font-semibold', isSelected ? 'text-ink' : 'text-ink')}>
-        {option.label}
-      </Text>
+      <Text className="text-[15px] font-semibold text-ink">{option.label}</Text>
       <Text className="text-xs leading-4 text-ink-muted">{option.description}</Text>
     </Pressable>
   );

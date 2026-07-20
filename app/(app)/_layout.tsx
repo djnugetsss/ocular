@@ -1,18 +1,7 @@
 import { Tabs } from 'expo-router';
-import { Text, type ColorValue } from 'react-native';
 
+import { Icon } from '@/components/ui/Icon';
 import { colors } from '@/theme/tokens';
-
-/**
- * Tab icons.
- *
- * Glyphs rather than an icon font: adding one is a native asset and a build
- * step, and this keeps the scaffold free of a dependency that a design pass
- * will almost certainly replace anyway.
- */
-function TabIcon({ glyph, color }: { glyph: string; color: ColorValue }) {
-  return <Text style={{ color, fontSize: 20 }}>{glyph}</Text>;
-}
 
 /**
  * Four tabs (PRODUCT_SPEC.md §3).
@@ -39,28 +28,28 @@ export default function AppLayout() {
         name="index"
         options={{
           title: 'Today',
-          tabBarIcon: ({ color }) => <TabIcon glyph="◎" color={color} />,
+          tabBarIcon: ({ color }) => <Icon name="eye" size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="scan"
         options={{
           title: 'Scan',
-          tabBarIcon: ({ color }) => <TabIcon glyph="◉" color={color} />,
+          tabBarIcon: ({ color }) => <Icon name="camera.viewfinder" size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="insights"
         options={{
           title: 'Insights',
-          tabBarIcon: ({ color }) => <TabIcon glyph="◫" color={color} />,
+          tabBarIcon: ({ color }) => <Icon name="chart.bar" size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color }) => <TabIcon glyph="⚙" color={color} />,
+          tabBarIcon: ({ color }) => <Icon name="person.crop.circle" size={22} color={color} />,
         }}
       />
     </Tabs>

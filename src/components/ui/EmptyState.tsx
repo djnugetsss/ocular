@@ -1,12 +1,15 @@
 import type { ReactNode } from 'react';
 import { Text, View } from 'react-native';
+import type { SFSymbol } from 'expo-symbols';
 
 import { Button } from '@/components/ui/Button';
+import { Icon } from '@/components/ui/Icon';
 import { cn } from '@/lib/cn';
+import { colors } from '@/theme/tokens';
 
 interface EmptyStateProps {
-  /** Decorative glyph. Hidden from assistive tech — the title carries meaning. */
-  glyph?: string;
+  /** Decorative SF Symbol. Hidden from assistive tech — the title carries meaning. */
+  symbol?: SFSymbol;
   title: string;
   body: string;
   action?: { label: string; onPress: () => void };
@@ -24,17 +27,13 @@ interface EmptyStateProps {
  * always "try again." Conflating the two makes a brand-new user feel like
  * something broke on their first launch.
  */
-export function EmptyState({ glyph, title, body, action, footer, className }: EmptyStateProps) {
+export function EmptyState({ symbol, title, body, action, footer, className }: EmptyStateProps) {
   return (
     <View className={cn('items-center gap-3 px-8 py-16', className)}>
-      {glyph ? (
-        <Text
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-          className="mb-1 text-4xl"
-        >
-          {glyph}
-        </Text>
+      {symbol ? (
+        <View className="mb-1 h-16 w-16 items-center justify-center rounded-full bg-canvas-raised">
+          <Icon name={symbol} size={28} color={colors.ink.faint} />
+        </View>
       ) : null}
 
       <Text className="text-center text-lg font-semibold text-ink">{title}</Text>

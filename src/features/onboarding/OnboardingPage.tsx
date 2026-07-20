@@ -1,9 +1,19 @@
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Animated, { FadeIn, SlideInRight, ReduceMotion } from 'react-native-reanimated';
+import Animated, {
+  Easing,
+  FadeIn,
+  ReduceMotion,
+  SlideInRight,
+  interpolateColor,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 
-import { cn } from '@/lib/cn';
+import { Icon } from '@/components/ui/Icon';
+import { colors, duration } from '@/theme/tokens';
 import { ONBOARDING_STEP_COUNT } from '@/features/onboarding/steps';
 
 interface OnboardingPageProps {
@@ -48,7 +58,7 @@ export function OnboardingPage({
             hitSlop={12}
             className="h-11 w-11 items-center justify-center"
           >
-            <Text className="text-2xl text-ink-muted">‹</Text>
+            <Icon name="chevron.left" size={18} color={colors.ink.muted} weight="semibold" />
           </Pressable>
         ) : (
           // Placeholder keeps the dots optically centered when there is no
@@ -58,13 +68,7 @@ export function OnboardingPage({
 
         <View className="flex-1 flex-row items-center justify-center gap-2">
           {Array.from({ length: ONBOARDING_STEP_COUNT }, (_, index) => (
-            <View
-              key={index}
-              className={cn(
-                'h-1.5 rounded-full',
-                index === step ? 'w-5 bg-accent' : 'w-1.5 bg-canvas-overlay'
-              )}
-            />
+            <ProgressDot key={index} isActive={index === step} />
           ))}
         </View>
 
@@ -99,10 +103,43 @@ export function OnboardingPage({
 
       <Animated.View
         entering={FadeIn.duration(250).reduceMotion(ReduceMotion.System)}
-        className="gap-3 px-6 pb-2 pt-4"
+        // pb-4 rather than pb-2: on devices without a home indicator the
+        // safe-area inset is zero, and 8 pt left the CTA nearly touching the
+        // screen edge.
+        className="gap-3 px-6 pb-4 pt-4"
       >
         {footer}
       </Animated.View>
     </SafeAreaView>
   );
+}
+
+/**
+ * One progress dot. The active dot grows from dot- to pill-width as its screen
+ * mounts, which reads as progress advancing; inactive dots are static. The
+ * screens remount on every push, so the tween runs exactly once per arrival.
+ */
+function ProgressDot({ isActive }: { isActive: boolean }) {
+  const progress = useSharedValue(0);
+
+  useEffect(() => {
+    progress.value = isActive
+      ? withTiming(1, {
+          duration: duration.page,
+          easing: Easing.out(Easing.ease),
+          reduceMotion: ReduceMotion.System,
+        })
+      : 0;
+  }, [isActive, progress]);
+
+  const style = useAnimatedStyle(() => ({
+    width: 6 + progress.value * 14,
+    backgroundColor: interpolateColor(
+      progress.value,
+      [0, 1],
+      [colors.canvas.overlay, colors.accent.DEFAULT]
+    ),
+  }));
+
+  return <Animated.View style={style} className="h-1.5 rounded-full" />;
 }

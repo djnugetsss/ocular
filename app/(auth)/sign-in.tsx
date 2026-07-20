@@ -50,9 +50,11 @@ export default function SignInScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View className="mb-10">
-            <Text className="text-3xl font-semibold text-ink">Welcome back</Text>
+            <Text accessibilityRole="header" className="text-title1 font-semibold text-ink">
+              Welcome back
+            </Text>
             <Text className="mt-2 text-base text-ink-muted">
-              Sign in to pick up your eye-health history.
+              Sign in to pick up your check-in history.
             </Text>
           </View>
 
@@ -83,12 +85,20 @@ export default function SignInScreen() {
               returnKeyType="go"
               onSubmitEditing={handleSubmit}
               placeholder="••••••••"
-              error={error}
             />
 
             <Link href="/(auth)/forgot-password" className="self-end py-2 text-sm text-accent">
               Forgot password?
             </Link>
+
+            {/* Form-level slot: a sign-in failure rarely belongs to one field,
+                and pinning it to the password input visually blamed the wrong
+                one for email-shaped errors. */}
+            {error ? (
+              <Text accessibilityLiveRegion="polite" className="text-sm leading-5 text-signal-bad">
+                {error}
+              </Text>
+            ) : null}
 
             <Button
               label="Sign in"

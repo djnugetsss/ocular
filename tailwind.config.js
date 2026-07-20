@@ -13,7 +13,8 @@ module.exports = {
         ink: {
           DEFAULT: '#F5F5F7',
           muted: '#A0A0AE',
-          faint: '#6B6B7B',
+          // Kept in sync with src/theme/tokens.ts — change both together.
+          faint: '#7E7E8F',
         },
         accent: {
           DEFAULT: '#5B8DEF',

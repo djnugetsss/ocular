@@ -33,19 +33,19 @@ export default function PrivacyScreen() {
     >
       <View className="gap-6">
         <InfoRow
-          glyph="✓"
+          symbol="cpu"
           tone="ok"
           title="Analyzed, then discarded"
           body="Frames are analyzed in your iPhone's memory and immediately discarded. Nothing is recorded."
         />
         <InfoRow
-          glyph="✓"
+          symbol="icloud.slash"
           tone="ok"
           title="Nothing is uploaded"
           body="No image, video, or face geometry is ever stored or uploaded."
         />
         <InfoRow
-          glyph="✓"
+          symbol="checkmark.shield"
           tone="ok"
           title="You own the numbers"
           body="Only summary numbers — blink counts, rates, head angles — sync to your account, and you can delete them anytime."

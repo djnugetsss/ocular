@@ -3,6 +3,8 @@ import { View } from 'react-native';
 import Svg, { Circle, Polyline, Rect } from 'react-native-svg';
 import type { FaceDetectionEvent, NormalizedPoint } from 'ocular-vision';
 
+import { colors } from '@/theme/tokens';
+
 /**
  * Draws the face mesh over the camera preview.
  *
@@ -34,8 +36,8 @@ const OPEN_REGIONS = new Set([
 /** Regions drawn as individual dots — pupils are single points. */
 const POINT_REGIONS = new Set(['leftPupil', 'rightPupil']);
 
-const MESH_COLOR = '#5B8DEF';
-const EYE_COLOR = '#3DD68C';
+const MESH_COLOR = colors.accent.DEFAULT;
+const EYE_COLOR = colors.signal.ok;
 
 function toPolylinePoints(points: NormalizedPoint[], width: number, height: number): string {
   return points.map((point) => `${point.x * width},${point.y * height}`).join(' ');

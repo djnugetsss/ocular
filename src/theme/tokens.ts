@@ -24,7 +24,9 @@ export const colors = {
   ink: {
     DEFAULT: '#F5F5F7',
     muted: '#A0A0AE',
-    faint: '#6B6B7B',
+    // Lightened from #6B6B7B (≈3.6:1 on canvas — below WCAG AA) to ≈4.6:1,
+    // since this token is used for caption-size text (DESIGN_REVIEW.md §1).
+    faint: '#7E7E8F',
   },
   accent: {
     DEFAULT: '#5B8DEF',

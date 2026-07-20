@@ -29,11 +29,20 @@ export default function ForgotPasswordScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-canvas">
+      {/* Grabber: this screen presents as a modal sheet, and iOS sheets
+          announce their dismissability with one. Decorative only. */}
+      <View
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        className="mt-2 h-1 w-9 self-center rounded-full bg-canvas-overlay"
+      />
       <KeyboardAvoidingView
-        className="flex-1 px-6 pt-8"
+        className="flex-1 px-6 pt-6"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Text className="text-2xl font-semibold text-ink">Reset your password</Text>
+        <Text accessibilityRole="header" className="text-title2 font-semibold text-ink">
+          Reset your password
+        </Text>
 
         {isSent ? (
           <>

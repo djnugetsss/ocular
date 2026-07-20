@@ -20,13 +20,13 @@ export default function HowItWorksScreen() {
     >
       <View className="gap-6">
         <InfoRow
-          glyph="◉"
+          symbol="eye"
           tone="accent"
           title="Blinking"
           body="You blink around 15 times a minute at rest. Screen focus can cut that in half, which dries and tires your eyes."
         />
         <InfoRow
-          glyph="⌇"
+          symbol="level"
           tone="accent"
           title="Head position"
           body="Your head drifts forward and down during long focus. Ocular measures its angle, so you can feel what neutral is."

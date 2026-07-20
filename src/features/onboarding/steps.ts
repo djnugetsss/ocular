@@ -1,3 +1,5 @@
+import type { SFSymbol } from 'expo-symbols';
+
 import type { ProfileGoal } from '@/lib/supabase/database.types';
 
 /**
@@ -40,7 +42,7 @@ export interface GoalOption {
   value: ProfileGoal;
   label: string;
   description: string;
-  glyph: string;
+  symbol: SFSymbol;
 }
 
 export const GOAL_OPTIONS: GoalOption[] = [
@@ -48,25 +50,25 @@ export const GOAL_OPTIONS: GoalOption[] = [
     value: 'eye_comfort',
     label: 'Reduce eye tiredness',
     description: 'Dry, gritty, or aching eyes',
-    glyph: '◉',
+    symbol: 'eye',
   },
   {
     value: 'posture',
     label: 'Improve posture',
     description: 'Neck and shoulder tension',
-    glyph: '⌇',
+    symbol: 'figure.stand',
   },
   {
     value: 'habit',
     label: 'Build a check-in habit',
     description: 'A regular moment to reset',
-    glyph: '◎',
+    symbol: 'calendar',
   },
   {
     value: 'curiosity',
     label: 'Just curious',
     description: 'Show me what you measure',
-    glyph: '✧',
+    symbol: 'sparkles',
   },
 ];
 

@@ -1,8 +1,17 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, LayoutChangeEvent, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { OcularVisionView } from 'ocular-vision';
+import Svg, { Ellipse } from 'react-native-svg';
+import Animated, {
+  Easing,
+  ReduceMotion,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 
 import { Button } from '@/components/ui/Button';
 import { MetricCard } from '@/components/ui/MetricCard';
@@ -12,14 +21,7 @@ import { LandmarkOverlay } from '@/features/vision/components/LandmarkOverlay';
 import { StatusPill } from '@/features/vision/components/StatusPill';
 import { useCameraPermission } from '@/features/vision/use-camera-permission';
 import { useFaceTracking } from '@/features/vision/use-face-tracking';
-
-/**
- * A resting adult blinks roughly 15-20 times per minute. Screen work reliably
- * drops that to the single digits, which is the mechanism behind digital eye
- * strain — so the thresholds below flag low rates, not high ones.
- */
-const HEALTHY_BLINK_RATE = 12;
-const LOW_BLINK_RATE = 8;
+import { blinkRateTone, colors } from '@/theme/tokens';
 
 export default function ScanScreen() {
   const user = useAuthStore((state) => state.user);
@@ -107,7 +109,9 @@ export default function ScanScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-canvas" edges={['top']}>
-      <View className="flex-1" onLayout={handleLayout}>
+      {/* Bottom radius separates the camera from the instrument panel below it
+          (DESIGN_REVIEW.md §3 anatomy). */}
+      <View className="flex-1 overflow-hidden rounded-b-sheet" onLayout={handleLayout}>
         <OcularVisionView
           {...viewProps}
           cameraPosition="front"
@@ -115,6 +119,8 @@ export default function ScanScreen() {
           style={{ flex: 1 }}
         />
         <LandmarkOverlay frame={frame} width={previewSize.width} height={previewSize.height} />
+
+        {!isActive ? <IdleGuide /> : null}
 
         <View className="absolute left-0 right-0 top-4 items-center">
           <StatusPill status={status} isCalibrated={isCalibrated} error={error?.message} />
@@ -128,15 +134,9 @@ export default function ScanScreen() {
             label="Blink rate"
             value={isCalibrated ? rate.toFixed(0) : '—'}
             unit="/min"
-            tone={
-              !isCalibrated
-                ? 'neutral'
-                : rate < LOW_BLINK_RATE
-                  ? 'bad'
-                  : rate < HEALTHY_BLINK_RATE
-                    ? 'warn'
-                    : 'ok'
-            }
+            // Shared thresholds from the theme, so this screen cannot drift
+            // from how the same rate is toned on Today and in history.
+            tone={isCalibrated ? blinkRateTone(rate) : 'neutral'}
             hint={isCalibrated ? undefined : 'Calibrating…'}
           />
           <MetricCard
@@ -173,7 +173,7 @@ export default function ScanScreen() {
         </View>
 
         <Button
-          label={isActive ? 'End session' : 'Start session'}
+          label={isActive ? 'End session' : 'Begin check-in'}
           variant={isActive ? 'danger' : 'primary'}
           isLoading={isSaving}
           onPress={() => (isActive ? void handleStop() : start())}
@@ -195,10 +195,66 @@ function Centered({
   return (
     <SafeAreaView className="flex-1 bg-canvas">
       <View className="flex-1 justify-center gap-3 px-8">
-        <Text className="text-2xl font-semibold text-ink">{title}</Text>
+        <Text accessibilityRole="header" className="text-title2 font-semibold text-ink">
+          {title}
+        </Text>
         <Text className="text-base leading-6 text-ink-muted">{body}</Text>
         {action ? <View className="mt-4">{action}</View> : null}
       </View>
     </SafeAreaView>
+  );
+}
+
+/**
+ * The scan tab at rest (DESIGN_REVIEW.md §3, state 1).
+ *
+ * The camera is genuinely off before a session starts, which used to render as
+ * a black void. This overlay makes the rest state look intentional: a quietly
+ * breathing face-guide oval on raised canvas, plus one line confirming the
+ * camera is off — the idle screen's job is to *show* the privacy promise, not
+ * just rely on onboarding having stated it.
+ */
+function IdleGuide() {
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    scale.value = withRepeat(
+      withTiming(1.03, {
+        duration: 2000,
+        easing: Easing.inOut(Easing.ease),
+        // Static under Reduce Motion: the oval still reads as a face guide
+        // without the breathing.
+        reduceMotion: ReduceMotion.System,
+      }),
+      -1,
+      true
+    );
+  }, [scale]);
+
+  const breathStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
+  return (
+    <View
+      pointerEvents="none"
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      className="absolute inset-0 items-center justify-center gap-6 bg-canvas-raised"
+    >
+      <Animated.View style={breathStyle}>
+        <Svg width={200} height={256}>
+          <Ellipse
+            cx={100}
+            cy={128}
+            rx={88}
+            ry={118}
+            stroke={colors.ink.faint}
+            strokeWidth={1.5}
+            strokeOpacity={0.45}
+            fill="none"
+          />
+        </Svg>
+      </Animated.View>
+      <Text className="text-sm text-ink-muted">Camera stays off until you begin</Text>
+    </View>
   );
 }
