@@ -946,10 +946,47 @@ start-slumped-stay-slumped scores well; copy must describe *change within
 the session*, never absolute posture. §3's scan-state design and the §10
 checklist are unchanged by any of this.
 
-**Next session:** Milestone A — Session Results screen (`session/[id]` +
-`baseline.ts` + delete + save-retry banner), wire `SessionRow` taps, scan
-timer + duration chips + auto-complete with `Toast` replacing the remaining
-alerts (checklist tasks 1–5).
+**2026-07-20 — Milestone A, Tasks 1–2 (Session Results).** Shipped
+`(app)/session/[id]` pushed over the tabs (the `(app)` group is now a Stack
+whose base is a `(tabs)` group). Post-scan the summary arrives in memory via a
+results-handoff store — save failure still opens the screen with an amber
+"Not saved yet" banner and retry, and leaving an unsaved result asks first.
+From history, rows fetch by id behind a layout-mirroring skeleton;
+unknown/deleted ids get a friendly error. Hero: blink rate vs. a trailing
+14-session duration-weighted baseline (`baseline.ts`, pure + 21 tests) with a
+delta chip and a one-sentence verdict (rule order: no rate → first-ever →
+thin history → absolutely low → significant delta → steady; baseline *load
+failure* downgrades to absolute thresholds rather than claiming first-ever).
+Metric row: blinks, head steadiness, duration. Delete with confirmation,
+non-optimistic. `SessionRow` now navigates on Today and Insights; shared
+`dates.ts` deduped day-title/duration formatting; Today's daily rate reuses
+the baseline's weighted-rate math. Hero entrance is the §6 fade + 8 pt rise,
+Reduce Motion respected throughout. Not in this slice (deliberate): head
+position `DisclosureRow`, recommendation `InsightCard`, `metric-info` modals
+(Task 23), Toast (Task 5).
+
+**2026-07-20 — Milestone A, Tasks 3–5 (scan ritual).** Shipped the §3 state
+machine within existing components: session clock (tabular-nums m:ss + thin
+linear progress, pause-aware, mirroring the aggregator's interruption
+semantics); 1/2/5-min duration chips persisted to `default_session_seconds`
+(background write, applied locally at once); auto-complete at target (state
+12: preview dims to 30% over 400 ms, then results); `Toast` component (250 ms
+in / 3 s hold / 200 ms out) replacing every scan alert — "Under 10 seconds —
+too short to measure", "This check-in ended unexpectedly"; silent stop-on-blur
+(state 15, including silent save-failure per spec); interruption auto-end
+after 10 s with partial save (state 11); error salvage (state 14: ≥ floor →
+results, below → toast); coaching states 8–9 via pure `CoachingMonitor`
+(1 s distance debounce both directions, 3 s low-visibility proxy, 16 tests)
+surfacing as neutral pill copy; pill fades out 3 s into settled tracking;
+blink tile 120 ms pulse; `danger-text` Button variant for "End session";
+scan's `Centered` helper deleted in favor of `EmptyState` (§5 merge). Idle
+metrics show em-dashes, not stale values. Not in this slice: haptics (§6 map,
+Task 12), `FaceGuide`/`PrivacyBadge`/`LiveMetric` band (Tasks 6, 7, 9),
+"Ended early" annotation on results (needs `end_reason`, Task 24).
+
+**Next session:** Milestone B — `PrivacyBadge` + `FaceGuide` (Tasks 6–7),
+mesh off by default behind `show_landmarks` (Task 8), `LiveMetric` band
+(Task 9).
 
 ---
 

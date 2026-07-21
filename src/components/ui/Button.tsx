@@ -16,7 +16,7 @@ import Animated, {
 import { cn } from '@/lib/cn';
 import { colors } from '@/theme/tokens';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'danger-text';
 
 interface ButtonProps extends Omit<PressableProps, 'children' | 'style'> {
   label: string;
@@ -30,6 +30,10 @@ const CONTAINER: Record<Variant, string> = {
   secondary: 'bg-canvas-overlay active:bg-canvas-raised border border-hairline',
   ghost: 'bg-transparent active:bg-canvas-raised',
   danger: 'bg-signal-bad/15 active:bg-signal-bad/25 border border-signal-bad/40',
+  // Text-only danger (DESIGN_REVIEW.md §4): for choices, not destruction —
+  // "End session" is a decision the user is entitled to make without the UI
+  // treating it as an emergency.
+  'danger-text': 'bg-transparent active:bg-signal-bad/10',
 };
 
 const LABEL: Record<Variant, string> = {
@@ -37,6 +41,7 @@ const LABEL: Record<Variant, string> = {
   secondary: 'text-ink',
   ghost: 'text-ink-muted',
   danger: 'text-signal-bad',
+  'danger-text': 'text-signal-bad',
 };
 
 const SPINNER: Record<Variant, string> = {
@@ -44,6 +49,7 @@ const SPINNER: Record<Variant, string> = {
   secondary: colors.ink.muted,
   ghost: colors.ink.muted,
   danger: colors.ink.muted,
+  'danger-text': colors.signal.bad,
 };
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);

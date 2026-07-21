@@ -32,6 +32,24 @@ export async function saveSession(
   return data;
 }
 
+/**
+ * Fetches one session, or `null` when it does not exist (deleted, or an id
+ * from a stale link). RLS scopes the read to the signed-in user, so someone
+ * else's id also resolves to `null` rather than an error.
+ */
+export async function getSession(sessionId: string): Promise<Session | null> {
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('*')
+    .eq('id', sessionId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Could not load session: ${error.message}`);
+  }
+  return data;
+}
+
 export async function listRecentSessions(userId: string, limit = 30): Promise<Session[]> {
   const { data, error } = await supabase
     .from('sessions')

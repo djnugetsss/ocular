@@ -10,7 +10,7 @@ export default function NotFoundScreen() {
         <Text className="text-center text-base text-ink-muted">
           The link you followed points somewhere Ocular doesn&apos;t have a screen for.
         </Text>
-        <Link href="/(app)" className="mt-4 text-base font-medium text-accent">
+        <Link href="/(app)/(tabs)" className="mt-4 text-base font-medium text-accent">
           Go to Today
         </Link>
       </View>

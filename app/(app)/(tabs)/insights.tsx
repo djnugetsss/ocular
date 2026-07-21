@@ -8,6 +8,7 @@ import { ErrorState, InlineError } from '@/components/ui/ErrorState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useAuthStore } from '@/features/auth/auth-store';
 import { SessionRow } from '@/features/sessions/components/SessionRow';
+import { formatDayTitle } from '@/features/sessions/dates';
 import { listRecentSessions } from '@/features/sessions/session-repository';
 import { colors } from '@/theme/tokens';
 import type { Session } from '@/lib/supabase/database.types';
@@ -136,14 +137,21 @@ export default function InsightsScreen() {
             body="Your history builds as you check in. Trends appear once there are a few sessions to compare."
             action={{
               label: 'Start a scan',
-              onPress: () => router.navigate('/(app)/scan'),
+              onPress: () => router.navigate('/(app)/(tabs)/scan'),
             }}
           />
         }
         renderSectionHeader={({ section }) => (
           <Text className="pb-2 pt-4 text-sm font-medium text-ink-muted">{section.title}</Text>
         )}
-        renderItem={({ item }) => <SessionRow session={item} />}
+        renderItem={({ item }) => (
+          <SessionRow
+            session={item}
+            onPress={() =>
+              router.push({ pathname: '/(app)/session/[id]', params: { id: item.id } })
+            }
+          />
+        )}
         ItemSeparatorComponent={() => <View className="h-2" />}
       />
     </SafeAreaView>
@@ -174,23 +182,6 @@ function groupByDay(sessions: Session[]): DaySection[] {
   }
 
   return sections;
-}
-
-function formatDayTitle(date: Date): string {
-  const now = new Date();
-  const isSameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
-
-  if (isSameDay(date, now)) return 'Today';
-
-  const yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
-  if (isSameDay(date, yesterday)) return 'Yesterday';
-
-  return date.toLocaleDateString(undefined, {
-    weekday: 'long',
-    month: 'short',
-    day: 'numeric',
-  });
 }
 
 function InsightsSkeleton() {

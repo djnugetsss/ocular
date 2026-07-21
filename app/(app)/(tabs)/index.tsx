@@ -8,7 +8,9 @@ import { ErrorState, InlineError } from '@/components/ui/ErrorState';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useAuthStore } from '@/features/auth/auth-store';
+import { durationWeightedBlinkRate } from '@/features/sessions/baseline';
 import { SessionRow } from '@/features/sessions/components/SessionRow';
+import { isToday } from '@/features/sessions/dates';
 import { listRecentSessions } from '@/features/sessions/session-repository';
 import { blinkRateTone, colors } from '@/theme/tokens';
 import type { Session } from '@/lib/supabase/database.types';
@@ -52,15 +54,14 @@ export default function DashboardScreen() {
     setIsRefreshing(false);
   }, [load]);
 
-  const today = sessions.filter((session) => isToday(session.started_at));
-  const todayBlinks = today.reduce((total, session) => total + session.blink_count, 0);
+  const today = sessions.filter((session) => isToday(new Date(session.started_at)));
   const todayMinutes = today.reduce(
     (total, session) => total + (session.duration_seconds ?? 0) / 60,
     0
   );
-  // Weight each session's rate by its duration: a 30-second session should not
-  // count as much as a 20-minute one when describing the day.
-  const todayRate = todayMinutes > 0 ? todayBlinks / todayMinutes : null;
+  // Duration-weighted, same rule the trailing baseline uses: a 30-second
+  // session should not count as much as a 20-minute one when describing the day.
+  const todayRate = durationWeightedBlinkRate(today);
 
   // First load shows the shape of what is coming rather than a spinner, so the
   // layout does not jump when data lands.
@@ -140,16 +141,16 @@ export default function DashboardScreen() {
             body="Run your first scan to see your baseline. It takes about two minutes."
             action={{
               label: 'Start your first scan',
-              onPress: () => router.navigate('/(app)/scan'),
+              onPress: () => router.navigate('/(app)/(tabs)/scan'),
             }}
           />
         }
         renderItem={({ item }) => (
           <SessionRow
             session={item}
-            // Session results are a Phase 2 screen; until it exists the rows
-            // stay non-interactive rather than advertising a tap that does
-            // nothing.
+            onPress={() =>
+              router.push({ pathname: '/(app)/session/[id]', params: { id: item.id } })
+            }
           />
         )}
         ItemSeparatorComponent={() => <View className="h-2" />}
@@ -185,15 +186,5 @@ function DashboardSkeleton() {
         </View>
       </View>
     </SafeAreaView>
-  );
-}
-
-function isToday(isoDate: string): boolean {
-  const date = new Date(isoDate);
-  const now = new Date();
-  return (
-    date.getFullYear() === now.getFullYear() &&
-    date.getMonth() === now.getMonth() &&
-    date.getDate() === now.getDate()
   );
 }

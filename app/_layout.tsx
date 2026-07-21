@@ -84,7 +84,7 @@ export default function RootLayout() {
     }
 
     if (inAuthGroup || inOnboardingGroup) {
-      router.replace('/(app)');
+      router.replace('/(app)/(tabs)');
     }
   }, [isRoutingReady, session, profileStatus, onboardedAt, onboardingStep, segments, router]);
 
