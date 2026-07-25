@@ -10,6 +10,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useAuthStore } from '@/features/auth/auth-store';
 import { useProfileStore } from '@/features/profile/profile-store';
 import { stepRoute } from '@/features/onboarding/steps';
+import { SubscriptionProvider } from '@/features/subscription/subscription-provider';
 import { colors } from '@/theme/tokens';
 
 // Held until both the persisted session and the profile resolve, so the app
@@ -92,17 +93,24 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <StatusBar style="light" />
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: colors.canvas.DEFAULT },
-            animation: 'fade',
-          }}
-        >
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(onboarding)" />
-          <Stack.Screen name="(app)" />
-        </Stack>
+        {/* Above the router so every screen reads one resolved entitlement,
+            and below the auth store it keys off — signing out drops the tier
+            to free without any screen having to remember to ask. Resolution
+            is a local read, so it settles well inside the splash window the
+            profile fetch already imposes. */}
+        <SubscriptionProvider>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: colors.canvas.DEFAULT },
+              animation: 'fade',
+            }}
+          >
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="(onboarding)" />
+            <Stack.Screen name="(app)" />
+          </Stack>
+        </SubscriptionProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

@@ -49,6 +49,28 @@ const RETRY_BASE_DELAY_MS = 250;
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/**
+ * Serializes profile writes.
+ *
+ * `save` replaces local state with the row the server returns, while
+ * `saveInBackground` applies its patch optimistically and ignores the
+ * response. Run concurrently those two disagree: renaming while a preference
+ * write is still in flight makes `save` overwrite the local profile with a
+ * row that predates the preference, silently reverting a toggle the user just
+ * flipped. Chaining every write means each response already reflects all
+ * earlier ones.
+ *
+ * A rejected write must not poison the chain, so the queue tracks a
+ * settled-either-way promise while callers still see the real rejection.
+ */
+let writeQueue: Promise<unknown> = Promise.resolve();
+
+function enqueueWrite<T>(work: () => Promise<T>): Promise<T> {
+  const result = writeQueue.then(work, work);
+  writeQueue = result.catch(() => undefined);
+  return result;
+}
+
 export const useProfileStore = create<ProfileState>((set, get) => ({
   profile: null,
   status: 'idle',
@@ -98,7 +120,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       throw new Error('Cannot save preferences before the profile has loaded.');
     }
 
-    const updated = await updateProfile(current.id, patch);
+    const updated = await enqueueWrite(() => updateProfile(current.id, patch));
     set({ profile: updated });
   },
 
@@ -109,10 +131,11 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     // Local first: the UI reflects the change immediately and never waits.
     set({ profile: { ...current, ...patch } as Profile });
 
-    void updateProfile(current.id, patch).catch(() => {
+    void enqueueWrite(() => updateProfile(current.id, patch)).catch(() => {
       // Intentionally silent. This path carries only recoverable, low-stakes
-      // state (onboarding progress); the worst case is that a user who force
-      // -quits mid-flow resumes one screen earlier than they left off.
+      // state — onboarding progress, and the scan screen's default duration.
+      // The worst case is that a user who force-quits resumes one screen
+      // earlier than they left off, or re-picks a duration chip once.
     });
   },
 

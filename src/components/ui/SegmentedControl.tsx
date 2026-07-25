@@ -51,11 +51,16 @@ export function SegmentedControl<T extends string | number>({
             accessibilityLabel={option.accessibilityLabel ?? option.label}
             onPress={() => onChange(option.value)}
             className={cn(
+              // 14, not the 18 pt card radius: this sits inside a `rounded-card`
+              // track with 4 pt of padding, and concentric corners need the
+              // inner radius reduced by exactly that inset or the curves read
+              // as mismatched. A deliberate exception to the 18/24/999 set.
               'flex-1 items-center justify-center rounded-[14px] py-2.5',
               isSelected ? 'bg-accent' : 'active:bg-canvas-overlay'
             )}
           >
             <Text
+              maxFontSizeMultiplier={2}
               className={cn('text-sm font-semibold', isSelected ? 'text-white' : 'text-ink-muted')}
             >
               {option.label}

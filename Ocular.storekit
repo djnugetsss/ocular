@@ -1,0 +1,79 @@
+{
+  "identifier" : "A1B2C3D4",
+  "nonRenewingSubscriptions" : [],
+  "products" : [],
+  "settings" : {
+    "_applicationInternalID" : "",
+    "_developerTeamID" : "",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 0,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+      { "current" : null, "enabled" : false, "name" : "Load Products" },
+      { "current" : null, "enabled" : false, "name" : "Purchase" },
+      { "current" : null, "enabled" : false, "name" : "Verification" },
+      { "current" : null, "enabled" : false, "name" : "App Store Sync" },
+      { "current" : null, "enabled" : false, "name" : "Subscription Status" },
+      { "current" : null, "enabled" : false, "name" : "App Transaction" },
+      { "current" : null, "enabled" : false, "name" : "Manage Subscriptions Sheet" },
+      { "current" : null, "enabled" : false, "name" : "Refund Request Sheet" },
+      { "current" : null, "enabled" : false, "name" : "Offer Code Redeem Sheet" }
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21600001",
+      "localizations" : [],
+      "name" : "Ocular Pro",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "3.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "21700001",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Unlimited check-ins, full history, and full Insights.",
+              "displayName" : "Ocular Pro Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "ocular.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Ocular Pro Monthly",
+          "subscriptionGroupID" : "21600001",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "39.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "21700002",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Unlimited check-ins, full history, and full Insights. Best value.",
+              "displayName" : "Ocular Pro Annual",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "ocular.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Ocular Pro Annual",
+          "subscriptionGroupID" : "21600001",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

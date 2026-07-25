@@ -1,4 +1,4 @@
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/cn';
@@ -30,11 +30,14 @@ export function ErrorState({
 }: ErrorStateProps) {
   return (
     <View className={cn('flex-1 items-center justify-center gap-3 px-8', className)}>
-      <Text className="text-center text-lg font-semibold text-ink">{title}</Text>
+      <Text maxFontSizeMultiplier={1.4} className="text-center text-title2 font-semibold text-ink">
+        {title}
+      </Text>
       <Text
         // Announced when it appears, so a failure is not silent for a user who
         // cannot see the screen change.
         accessibilityLiveRegion="polite"
+        maxFontSizeMultiplier={2}
         className="text-center text-base leading-6 text-ink-muted"
       >
         {message}
@@ -74,15 +77,23 @@ export function InlineError({ message, onRetry, className }: InlineErrorProps) {
         className
       )}
     >
-      <Text className="flex-1 text-sm text-signal-warn">{message}</Text>
+      <Text maxFontSizeMultiplier={2} className="flex-1 text-sm text-signal-warn">
+        {message}
+      </Text>
       {onRetry ? (
-        <Text
+        // A real pressable with padding rather than bare text: the visible
+        // word is small, and the touch target must not be. Negative margin
+        // keeps the banner's visual rhythm unchanged.
+        <Pressable
           onPress={onRetry}
           accessibilityRole="button"
-          className="text-sm font-semibold text-ink"
+          hitSlop={8}
+          className="-my-2 -mr-2 rounded-lg px-2 py-2 active:bg-signal-warn/15"
         >
-          Retry
-        </Text>
+          <Text maxFontSizeMultiplier={2} className="text-sm font-semibold text-ink">
+            Retry
+          </Text>
+        </Pressable>
       ) : null}
     </View>
   );

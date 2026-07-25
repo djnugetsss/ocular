@@ -45,7 +45,8 @@ const LABEL: Record<Variant, string> = {
 };
 
 const SPINNER: Record<Variant, string> = {
-  primary: '#FFFFFF',
+  // Matches the `text-white` label on the accent fill (§2.9: no hex escapees).
+  primary: colors.white,
   secondary: colors.ink.muted,
   ghost: colors.ink.muted,
   danger: colors.ink.muted,
@@ -116,7 +117,12 @@ export function Button({
       {isLoading ? (
         <ActivityIndicator color={SPINNER[variant]} />
       ) : (
-        <Text className={cn('text-center text-base font-semibold', LABEL[variant])}>{label}</Text>
+        <Text
+          maxFontSizeMultiplier={2}
+          className={cn('text-center text-base font-semibold', LABEL[variant])}
+        >
+          {label}
+        </Text>
       )}
     </AnimatedPressable>
   );

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { View, type ViewProps } from 'react-native';
+import { type ViewProps } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -58,19 +58,5 @@ export function Skeleton({ className, style, ...props }: SkeletonProps) {
       className={cn('rounded-card bg-canvas-overlay', className)}
       {...props}
     />
-  );
-}
-
-/** Convenience: a run of text-line skeletons at descending widths. */
-export function SkeletonText({ lines = 3, className }: { lines?: number; className?: string }) {
-  return (
-    <View className={cn('gap-2', className)}>
-      {Array.from({ length: lines }, (_, index) => (
-        <Skeleton
-          key={index}
-          className={cn('h-4 rounded-md', index === lines - 1 ? 'w-1/2' : 'w-full')}
-        />
-      ))}
-    </View>
   );
 }

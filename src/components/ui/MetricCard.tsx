@@ -1,5 +1,7 @@
 import { Text, View } from 'react-native';
 
+import { Card } from '@/components/ui/Card';
+import { SectionHeader } from '@/components/ui/SectionHeader';
 import { cn } from '@/lib/cn';
 
 interface MetricCardProps {
@@ -27,19 +29,35 @@ export function MetricCard({
   className,
 }: MetricCardProps) {
   return (
-    <View
+    <Card
       // Grouped so VoiceOver reads "Blink rate, 14 per minute" as one unit
       // instead of stopping on each fragment.
       accessible
       accessibilityLabel={`${label}, ${value}${unit ? ` ${unit}` : ''}`}
-      className={cn('rounded-card border border-hairline bg-canvas-raised p-4', className)}
+      className={className}
     >
-      <Text className="text-xs font-medium uppercase tracking-wide text-ink-faint">{label}</Text>
+      <SectionHeader>{label}</SectionHeader>
       <View className="mt-2 flex-row items-baseline gap-1">
-        <Text className={cn('text-metric font-semibold', TONE[tone])}>{value}</Text>
-        {unit ? <Text className="text-sm text-ink-muted">{unit}</Text> : null}
+        {/* Tabular figures: these values sit side by side across cards, and
+            proportional digits would make equal-length numbers ragged. */}
+        <Text
+          maxFontSizeMultiplier={1.4}
+          style={{ fontVariant: ['tabular-nums'] }}
+          className={cn('text-metric font-semibold', TONE[tone])}
+        >
+          {value}
+        </Text>
+        {unit ? (
+          <Text maxFontSizeMultiplier={1.4} className="text-sm text-ink-muted">
+            {unit}
+          </Text>
+        ) : null}
       </View>
-      {hint ? <Text className="mt-1 text-xs text-ink-faint">{hint}</Text> : null}
-    </View>
+      {hint ? (
+        <Text maxFontSizeMultiplier={2} className="mt-1 text-xs text-ink-faint">
+          {hint}
+        </Text>
+      ) : null}
+    </Card>
   );
 }

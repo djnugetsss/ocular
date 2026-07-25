@@ -20,6 +20,10 @@ export default function AppLayout() {
     >
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="session/[id]" />
+      {/* The premium sheet: an iOS card modal, so it slides over whichever
+          surface invited it and swipes away without disturbing that surface's
+          state. Presented only by explicit taps — see premium.tsx. */}
+      <Stack.Screen name="premium" options={{ presentation: 'modal', animation: 'default' }} />
     </Stack>
   );
 }

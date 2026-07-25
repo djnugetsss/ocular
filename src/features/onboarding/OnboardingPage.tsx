@@ -88,13 +88,16 @@ export function OnboardingPage({
             // The heading is the screen's identity — focus lands here first so
             // VoiceOver announces where the user is, not the progress dots.
             accessibilityRole="header"
+            maxFontSizeMultiplier={1.4}
             className="text-title1 font-semibold text-ink"
           >
             {title}
           </Text>
 
           {subtitle ? (
-            <Text className="mt-3 text-base leading-6 text-ink-muted">{subtitle}</Text>
+            <Text maxFontSizeMultiplier={2} className="mt-3 text-base leading-6 text-ink-muted">
+              {subtitle}
+            </Text>
           ) : null}
 
           {children ? <View className="mt-8">{children}</View> : null}

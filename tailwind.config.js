@@ -32,6 +32,10 @@ module.exports = {
       // callout (14), and caption (12) map onto Tailwind's default
       // text-base/text-sm/text-xs and are intentionally not redefined here.
       fontSize: {
+        // The results hero — the single largest number in the app. Formalized
+        // from an inline `text-[56px] leading-[62px] tracking-[-2px]` at the
+        // identical values (§4: retire ad-hoc sizes in favor of the scale).
+        display: ['56px', { lineHeight: '62px', letterSpacing: '-2px' }],
         metric: ['44px', { lineHeight: '48px', letterSpacing: '-1.5px' }],
         title1: ['30px', { lineHeight: '36px', letterSpacing: '-0.5px' }],
         title2: ['22px', { lineHeight: '28px', letterSpacing: '-0.2px' }],

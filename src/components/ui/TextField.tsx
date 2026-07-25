@@ -16,13 +16,16 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
 ) {
   return (
     <View className={cn('gap-2', className)}>
-      <Text className="text-sm font-medium text-ink-muted">{label}</Text>
+      <Text maxFontSizeMultiplier={2} className="text-sm font-medium text-ink-muted">
+        {label}
+      </Text>
       <TextInput
         ref={ref}
         accessibilityLabel={label}
         // Errors are conveyed by a red border as well as by text; the hint
         // makes the reason available to VoiceOver, which cannot see the border.
         accessibilityHint={error ?? undefined}
+        maxFontSizeMultiplier={2}
         placeholderTextColor={colors.ink.faint}
         // The app is dark-only; without this iOS shows a light keyboard that
         // flashbangs the canvas every time a field focuses.
@@ -34,7 +37,11 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
         {...props}
       />
       {error ? (
-        <Text accessibilityLiveRegion="polite" className="text-sm text-signal-bad">
+        <Text
+          accessibilityLiveRegion="polite"
+          maxFontSizeMultiplier={2}
+          className="text-sm text-signal-bad"
+        >
           {error}
         </Text>
       ) : null}

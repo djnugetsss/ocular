@@ -8,9 +8,9 @@ import {
   View,
 } from 'react-native';
 import { Link } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
+import { Screen } from '@/components/ui/Screen';
 import { TextField } from '@/components/ui/TextField';
 import { describeAuthError, useAuthStore } from '@/features/auth/auth-store';
 
@@ -40,7 +40,7 @@ export default function SignInScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-canvas">
+    <Screen edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -50,10 +50,14 @@ export default function SignInScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View className="mb-10">
-            <Text accessibilityRole="header" className="text-title1 font-semibold text-ink">
+            <Text
+              accessibilityRole="header"
+              maxFontSizeMultiplier={1.4}
+              className="text-title1 font-semibold text-ink"
+            >
               Welcome back
             </Text>
-            <Text className="mt-2 text-base text-ink-muted">
+            <Text maxFontSizeMultiplier={2} className="mt-2 text-base text-ink-muted">
               Sign in to pick up your check-in history.
             </Text>
           </View>
@@ -95,7 +99,11 @@ export default function SignInScreen() {
                 and pinning it to the password input visually blamed the wrong
                 one for email-shaped errors. */}
             {error ? (
-              <Text accessibilityLiveRegion="polite" className="text-sm leading-5 text-signal-bad">
+              <Text
+                maxFontSizeMultiplier={2}
+                accessibilityLiveRegion="polite"
+                className="text-sm leading-5 text-signal-bad"
+              >
                 {error}
               </Text>
             ) : null}
@@ -112,7 +120,7 @@ export default function SignInScreen() {
           {/* One Text run rather than siblings in a flex-row: nested text
               shares a single baseline, so the label and link cannot render
               vertically offset from each other. */}
-          <Text className="mt-8 text-center text-sm text-ink-muted">
+          <Text maxFontSizeMultiplier={2} className="mt-8 text-center text-sm text-ink-muted">
             New to Ocular?{' '}
             <Link href="/(auth)/sign-up" className="font-medium text-accent">
               Create an account
@@ -120,6 +128,6 @@ export default function SignInScreen() {
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </Screen>
   );
 }

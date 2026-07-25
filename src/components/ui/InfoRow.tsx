@@ -44,8 +44,12 @@ export function InfoRow({ symbol, title, body, tone = 'neutral', className }: In
       </View>
 
       <View className="flex-1 gap-1">
-        <Text className="text-base font-semibold text-ink">{title}</Text>
-        <Text className="text-[15px] leading-6 text-ink-muted">{body}</Text>
+        <Text maxFontSizeMultiplier={2} className="text-base font-semibold text-ink">
+          {title}
+        </Text>
+        <Text maxFontSizeMultiplier={2} className="text-base leading-6 text-ink-muted">
+          {body}
+        </Text>
       </View>
     </View>
   );

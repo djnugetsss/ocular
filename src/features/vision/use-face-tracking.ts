@@ -21,7 +21,13 @@ interface UseFaceTrackingOptions {
 }
 
 interface FaceTrackingState {
-  /** Most recent frame. Updates at the native view's `updateInterval`. */
+  /**
+   * Most recent frame — **only populated when `landmarks` is enabled**, since
+   * the overlay is its sole consumer. Holding a fresh event object in state
+   * at the native update rate forces a render of the whole scan screen 15
+   * times a second; scalar consumers read `hasFace`/`isCalibrated` instead,
+   * which React bails out of when unchanged.
+   */
   frame: FaceDetectionEvent | null;
   status: TrackingStatus;
   error: VisionErrorEvent | null;
@@ -64,6 +70,8 @@ export function useFaceTracking(options: UseFaceTrackingOptions = {}): FaceTrack
   const { landmarks = false } = options;
 
   const [frame, setFrame] = useState<FaceDetectionEvent | null>(null);
+  const [hasFace, setHasFace] = useState(false);
+  const [isCalibrated, setIsCalibrated] = useState(false);
   const [isActive, setIsActive] = useState(false);
   const [error, setError] = useState<VisionErrorEvent | null>(null);
   const [sessionState, setSessionState] = useState<SessionStateEvent['state']>('idle');
@@ -75,18 +83,31 @@ export function useFaceTracking(options: UseFaceTrackingOptions = {}): FaceTrack
   // reading state directly in the handler would fold those stragglers into a
   // session the user has already ended.
   const isActiveRef = useRef(false);
+  // Read inside the frame handler so toggling the mesh never re-arms the
+  // handler (which would churn `viewProps` and re-cross the bridge).
+  const landmarksRef = useRef(landmarks);
+  useEffect(() => {
+    landmarksRef.current = landmarks;
+  }, [landmarks]);
 
   const start = useCallback(() => {
     aggregatorRef.current = new SessionAggregator(new Date());
     isActiveRef.current = true;
     setError(null);
     setBlinkCount(0);
+    setHasFace(false);
+    setIsCalibrated(false);
     setIsActive(true);
   }, []);
 
   const stop = useCallback((): SessionSummary | null => {
     isActiveRef.current = false;
     setIsActive(false);
+    setHasFace(false);
+    // Release the retained frame: with landmarks on it holds 76 points, and
+    // nothing should keep the last image-derived geometry alive after a
+    // session ends.
+    setFrame(null);
 
     const aggregator = aggregatorRef.current;
     aggregatorRef.current = null;
@@ -97,8 +118,15 @@ export function useFaceTracking(options: UseFaceTrackingOptions = {}): FaceTrack
 
   const handleFaceDetection = useCallback((event: { nativeEvent: FaceDetectionEvent }) => {
     if (!isActiveRef.current) return;
-    aggregatorRef.current?.addFrame(event.nativeEvent);
-    setFrame(event.nativeEvent);
+    const observed = event.nativeEvent;
+    aggregatorRef.current?.addFrame(observed);
+
+    // Booleans, not the event object: React bails out of the render entirely
+    // when these are unchanged, so a steady tracking state costs zero renders
+    // per frame instead of one. Only the mesh needs the full payload.
+    setHasFace(observed.hasFace);
+    setIsCalibrated(observed.blink?.isCalibrated ?? false);
+    if (landmarksRef.current) setFrame(observed);
   }, []);
 
   const handleBlink = useCallback((event: { nativeEvent: BlinkEvent }) => {
@@ -126,6 +154,7 @@ export function useFaceTracking(options: UseFaceTrackingOptions = {}): FaceTrack
     setError(event.nativeEvent);
     isActiveRef.current = false;
     setIsActive(false);
+    setFrame(null);
   }, []);
 
   // Releasing the camera on unmount is not optional: a session left running
@@ -146,8 +175,8 @@ export function useFaceTracking(options: UseFaceTrackingOptions = {}): FaceTrack
     // by iOS — misleading exactly when the user most needs the truth.
     if (sessionState === 'interrupted') return 'interrupted';
     if (sessionState !== 'running') return 'starting';
-    return frame?.hasFace ? 'tracking' : 'searching';
-  }, [error, sessionState, isActive, frame?.hasFace]);
+    return hasFace ? 'tracking' : 'searching';
+  }, [error, sessionState, isActive, hasFace]);
 
   const viewProps = useMemo(
     () => ({
@@ -169,11 +198,14 @@ export function useFaceTracking(options: UseFaceTrackingOptions = {}): FaceTrack
   );
 
   return {
-    frame,
+    // Derived rather than cleared in an effect: turning the mesh off mid-app
+    // must not leave the last frame's geometry addressable, and a derivation
+    // cannot cascade a render the way a state reset would.
+    frame: landmarks ? frame : null,
     status,
     error,
     isActive,
-    isCalibrated: frame?.blink?.isCalibrated ?? false,
+    isCalibrated,
     blinkCount,
     start,
     stop,

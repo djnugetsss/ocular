@@ -83,8 +83,7 @@ export class CoachingMonitor {
 
     // Distance advice is only meaningful while the face is actually current;
     // a lost face is the searching state's business (state 10), not ours.
-    const faceIsCurrent =
-      this.lastFaceAt !== null && now - this.lastFaceAt <= DISTANCE_DEBOUNCE_MS;
+    const faceIsCurrent = this.lastFaceAt !== null && now - this.lastFaceAt <= DISTANCE_DEBOUNCE_MS;
 
     if (this.activeDistance !== null && faceIsCurrent) return this.activeDistance;
 

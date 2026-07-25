@@ -2,6 +2,7 @@ import { Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 import { InfoRow } from '@/components/ui/InfoRow';
 import { OnboardingPage } from '@/features/onboarding/OnboardingPage';
 import { useRecordOnboardingStep } from '@/features/onboarding/use-onboarding-step';
@@ -32,12 +33,12 @@ export default function HowItWorksScreen() {
           body="Your head drifts forward and down during long focus. Ocular measures its angle, so you can feel what neutral is."
         />
 
-        <View className="mt-2 rounded-card border border-hairline bg-canvas-raised p-4">
-          <Text className="text-[13px] leading-5 text-ink-faint">
+        <Card className="mt-2">
+          <Text maxFontSizeMultiplier={2} className="text-sm leading-5 text-ink-faint">
             Ocular is a wellness tool, not a medical device. It measures habits, not health
             conditions.
           </Text>
-        </View>
+        </Card>
       </View>
     </OnboardingPage>
   );

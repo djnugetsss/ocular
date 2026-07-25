@@ -3,6 +3,7 @@ import { Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { GoalCard } from '@/features/onboarding/GoalCard';
 import { OnboardingPage } from '@/features/onboarding/OnboardingPage';
@@ -82,7 +83,11 @@ export default function GoalsScreen() {
       footer={
         <>
           {error ? (
-            <Text accessibilityLiveRegion="polite" className="text-center text-sm text-signal-bad">
+            <Text
+              maxFontSizeMultiplier={2}
+              accessibilityLiveRegion="polite"
+              className="text-center text-sm text-signal-bad"
+            >
               {error}
             </Text>
           ) : null}
@@ -120,7 +125,9 @@ export default function GoalsScreen() {
         </View>
 
         <View className="gap-3">
-          <Text className="text-sm font-medium text-ink-muted">Daily check-ins</Text>
+          <Text maxFontSizeMultiplier={2} className="text-sm font-medium text-ink-muted">
+            Daily check-ins
+          </Text>
           <SegmentedControl
             options={DAILY_TARGET_OPTIONS.map((count) => ({
               value: count,
@@ -130,19 +137,19 @@ export default function GoalsScreen() {
             value={dailyTarget}
             onChange={setDailyTarget}
           />
-          <Text className="text-xs leading-5 text-ink-faint">
+          <Text maxFontSizeMultiplier={2} className="text-xs leading-5 text-ink-faint">
             You start every check-in yourself — Ocular never measures on its own. A realistic target
             beats an ambitious one.
           </Text>
         </View>
 
         {cameraDenied === '1' ? (
-          <View className="rounded-card border border-hairline bg-canvas-raised p-4">
-            <Text className="text-[13px] leading-5 text-ink-muted">
+          <Card>
+            <Text maxFontSizeMultiplier={2} className="text-sm leading-5 text-ink-muted">
               Camera access is off. You can turn it on anytime from Profile — scans need it, but
               nothing else does.
             </Text>
-          </View>
+          </Card>
         ) : null}
       </View>
     </OnboardingPage>

@@ -111,6 +111,10 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     extra: {
       variant: VARIANT,
+      // RevenueCat's public SDK key (publishable, safe to ship — like the
+      // Supabase anon key). Read by `features/subscription/revenue-cat`; absent
+      // → the store degrades to the offline/free path instead of crashing.
+      revenueCatIosKey: process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY,
       router: {},
       eas: {
         // Populated by `eas init`. Kept here so the key is discoverable in review.

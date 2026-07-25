@@ -43,8 +43,12 @@ export function GoalCard({ option, isSelected, onPress }: GoalCardProps) {
         ) : null}
       </View>
 
-      <Text className="text-[15px] font-semibold text-ink">{option.label}</Text>
-      <Text className="text-xs leading-4 text-ink-muted">{option.description}</Text>
+      <Text maxFontSizeMultiplier={2} className="text-base font-semibold text-ink">
+        {option.label}
+      </Text>
+      <Text maxFontSizeMultiplier={2} className="text-xs leading-4 text-ink-muted">
+        {option.description}
+      </Text>
     </Pressable>
   );
 }

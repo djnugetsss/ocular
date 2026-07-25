@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
+import { Screen } from '@/components/ui/Screen';
 import { TextField } from '@/components/ui/TextField';
 import { describeAuthError, useAuthStore } from '@/features/auth/auth-store';
 
@@ -28,7 +28,7 @@ export default function ForgotPasswordScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-canvas">
+    <Screen edges={['top', 'bottom']}>
       {/* Grabber: this screen presents as a modal sheet, and iOS sheets
           announce their dismissability with one. Decorative only. */}
       <View
@@ -40,15 +40,22 @@ export default function ForgotPasswordScreen() {
         className="flex-1 px-6 pt-6"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Text accessibilityRole="header" className="text-title2 font-semibold text-ink">
+        <Text
+          accessibilityRole="header"
+          maxFontSizeMultiplier={1.4}
+          className="text-title2 font-semibold text-ink"
+        >
           Reset your password
         </Text>
 
         {isSent ? (
           <>
-            <Text className="mt-3 text-base leading-6 text-ink-muted">
-              If an account exists for <Text className="font-medium text-ink">{email.trim()}</Text>,
-              a reset link is on its way.
+            <Text maxFontSizeMultiplier={2} className="mt-3 text-base leading-6 text-ink-muted">
+              If an account exists for{' '}
+              <Text maxFontSizeMultiplier={2} className="font-medium text-ink">
+                {email.trim()}
+              </Text>
+              , a reset link is on its way.
             </Text>
             <Button
               label="Done"
@@ -59,7 +66,7 @@ export default function ForgotPasswordScreen() {
           </>
         ) : (
           <>
-            <Text className="mt-3 text-base leading-6 text-ink-muted">
+            <Text maxFontSizeMultiplier={2} className="mt-3 text-base leading-6 text-ink-muted">
               Enter your email and we&apos;ll send a link to set a new password.
             </Text>
 
@@ -90,6 +97,6 @@ export default function ForgotPasswordScreen() {
           </>
         )}
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </Screen>
   );
 }

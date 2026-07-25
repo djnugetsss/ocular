@@ -39,9 +39,24 @@ export const colors = {
     bad: '#F26D6D',
   },
   hairline: '#262631',
+  /**
+   * Pure white — not a palette color, and not for surfaces or body text.
+   * It exists solely to give imperative props (spinner tints) the same value
+   * the `text-white` utility paints on filled accent controls, so the two
+   * cannot drift. Everything else uses `ink`.
+   */
+  white: '#FFFFFF',
 } as const;
 
-/** 4-point base scale (§5.3). */
+/**
+ * 4-point base scale (§5.3).
+ *
+ * Mirrors `tailwind.config.js` for the imperative surfaces NativeWind cannot
+ * reach. Currently unreferenced — the layout work has all been expressible in
+ * classes — but kept deliberately: deleting it invites the next imperative
+ * caller to hardcode a number, which is exactly the drift this file exists to
+ * prevent. Same reasoning for `radius` below.
+ */
 export const spacing = {
   xs: 4,
   sm: 8,

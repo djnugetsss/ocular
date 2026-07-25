@@ -5,8 +5,8 @@
 reading the implementation.
 **Role:** Lead Product Designer / Senior iOS UX / Apple HIG review.
 **Relationship to other docs:** PRODUCT_SPEC.md defines what the product should
-become; PLAN.md defines the architecture. This document freezes the *design
-decisions* for the remaining implementation and audits what exists today
+become; PLAN.md defines the architecture. This document freezes the _design
+decisions_ for the remaining implementation and audits what exists today
 (Phase 1 complete, Phase 2 partially started).
 
 **What is actually implemented today:** auth (sign-in / sign-up / forgot
@@ -25,18 +25,18 @@ deletion, account deletion.
 Scored as an App Store reviewer / discerning first-time user would experience
 the current build. 10 = Top-10 Health & Fitness quality.
 
-| Dimension | Score | |
-| --- | :-: | --- |
-| Visual quality | 6/10 | Strong foundations, unfinished surfaces |
-| UX | 6/10 | Excellent states discipline, incomplete core loop |
-| Navigation | 7/10 | Correct structure, missing destinations |
-| Clarity | 7/10 | Copy is a genuine strength |
-| Trust | 7/10 | Great words, not yet great *behavior* |
-| Onboarding | 8/10 | The best-built surface in the app |
-| Accessibility | 7/10 | Unusually good foundations, two real gaps |
-| Premium feel | 4/10 | The biggest gap to close |
-| Privacy communication | 7/10 | Strong statically, weak at the moment of truth |
-| App Store readiness | 3/10 | Several hard blockers |
+| Dimension             | Score |                                                   |
+| --------------------- | :---: | ------------------------------------------------- |
+| Visual quality        | 6/10  | Strong foundations, unfinished surfaces           |
+| UX                    | 6/10  | Excellent states discipline, incomplete core loop |
+| Navigation            | 7/10  | Correct structure, missing destinations           |
+| Clarity               | 7/10  | Copy is a genuine strength                        |
+| Trust                 | 7/10  | Great words, not yet great _behavior_             |
+| Onboarding            | 8/10  | The best-built surface in the app                 |
+| Accessibility         | 7/10  | Unusually good foundations, two real gaps         |
+| Premium feel          | 4/10  | The biggest gap to close                          |
+| Privacy communication | 7/10  | Strong statically, weak at the moment of truth    |
+| App Store readiness   | 3/10  | Several hard blockers                             |
 
 ### Visual quality — 6
 
@@ -78,11 +78,11 @@ thinking most shipped apps never do. But the core loop is severed:
 ### Navigation — 7
 
 Four tabs is right, the groups and gating in `app/_layout.tsx` are right, and
-the redirect logic (splash held until auth *and* profile settle; error counts
+the redirect logic (splash held until auth _and_ profile settle; error counts
 as settled) is better-reasoned than most production apps. Deducted because the
 graph is missing its two most-traveled edges — scan → results and row →
 results — and because tapping the Scan tab mid-session context (stop-on-blur in
-`scan.tsx`) can pop a save `Alert` over a *different* tab, which is
+`scan.tsx`) can pop a save `Alert` over a _different_ tab, which is
 disorienting.
 
 ### Clarity — 7
@@ -99,7 +99,7 @@ toward the medical framing the spec explicitly bans. Say "check-in history."
 
 The privacy contract screen is the strongest single screen in the app, and the
 camera-permission priming (explain first, always advance, never scold) is
-textbook. But trust is built at the moment the camera is *on*, and there the
+textbook. But trust is built at the moment the camera is _on_, and there the
 current build undermines its own promises:
 
 - Onboarding promises "an on-device badge shows whenever the camera is active"
@@ -138,7 +138,7 @@ radio semantics on goal cards. Two substantive gaps keep it at 7:
 
 ### Premium feel — 4
 
-Honest score. What exists is *tasteful*, which is the hard part, but premium
+Honest score. What exists is _tasteful_, which is the hard part, but premium
 is earned through motion, materiality, and payoff, and today: zero haptics
 (`expo-haptics` isn't even a dependency), no animation outside onboarding and
 the skeleton pulse, glyph icons, no blur materials, no rounded camera preview,
@@ -161,7 +161,7 @@ Hard blockers, detailed in Section 8: **no account deletion** (Guideline
 policy URL, placeholder app icon, no session deletion despite onboarding
 promising "you can delete them anytime" (a stated-vs-actual mismatch reviewers
 notice), and a core loop that dead-ends. The permission string, on-device
-processing posture, and non-medical framing are all *assets* for review — the
+processing posture, and non-medical framing are all _assets_ for review — the
 groundwork is good; the checklist is simply unfinished.
 
 ---
@@ -180,6 +180,7 @@ Keychain autofill, disabled-until-valid CTA, store-driven redirect with no
 navigation race, mapped human error copy (`describeAuthError`).
 
 **Weaknesses & issues.**
+
 - "Sign in to pick up your **eye-health** history" — medical-adjacent framing
   banned by spec §1. Use "check-in history." — **High**
 - Error text renders only under the password field regardless of cause; an
@@ -200,6 +201,7 @@ min-length feedback, the confirm-email terminal state instead of a silent
 no-op, a one-line privacy promise right in the subtitle — excellent placement.
 
 **Weaknesses & issues.**
+
 - Server error and local password hint share one slot (`error ?? passwordError`)
   under the password field — same misattribution problem as sign-in. — **Medium**
 - No terms/privacy-policy acknowledgment line; needed for review and for trust
@@ -216,6 +218,7 @@ no-op, a one-line privacy promise right in the subtitle — excellent placement.
 account exists…"), clean sent-state swap.
 
 **Weaknesses & issues.**
+
 - Content sits at `pt-8` under a modal sheet with no grabber and no title
   alignment with the iOS sheet idiom; feels like a page pretending to be a
   sheet. Add a grabber or use a proper header. — **Low**
@@ -231,9 +234,10 @@ fire-and-forget and only-advances; the goals screen's failure escape hatch is
 one of the most user-respecting flows I've reviewed.
 
 **Weaknesses & issues.**
+
 - Welcome hero is a glyph in a circle. This is the app's first impression;
   it needs a designed mark (see §6 for the blink animation spec, which is
-  already implemented well — the *asset* is what's placeholder). — **High**
+  already implemented well — the _asset_ is what's placeholder). — **High**
 - Back chevron is the text character `‹`, optically off-center in its 44 pt
   target and unweighted; use a drawn chevron (SF-Symbols-style path). —
   **Medium**
@@ -257,6 +261,7 @@ inline error; correct empty state with a real CTA; reload-on-focus so a new
 scan appears immediately.
 
 **Weaknesses & issues.**
+
 - **No daily-progress hero.** `daily_target_sessions` exists in the profile
   and is settable in two places, but Today never shows progress against it.
   The emotional core of the screen (spec §4.2's `WellnessRing`) is absent, and
@@ -283,11 +288,12 @@ target design in Section 3.
 
 **Strengths.** Permission tri-state handled in place (undetermined / denied /
 simulator) with calm copy and correct Settings deep-link; camera provably off
-until "Start session" (`isActive` gates the native view) — the *behavior* is
+until "Start session" (`isActive` gates the native view) — the _behavior_ is
 privacy-first even though the UI doesn't say so; stop-on-blur releases the
 camera; save failures never destroy the measurement.
 
 **Weaknesses & issues.**
+
 - **Landmark mesh always on** (`landmarks: true`): contradicts spec §4.3, reads
   as surveillance, and pays the serialization cost every session. The
   `show_landmarks` profile column exists and is unused. — **Critical**
@@ -322,12 +328,13 @@ philosophy already encoded in `groupByDay`'s comment; same state discipline as
 Today.
 
 **Weaknesses & issues.**
+
 - No charts, deltas, or patterns yet — the tab is a filing cabinet. Expected at
   this phase; noted for §9 ordering. — **High** (product completeness)
 - Rows non-interactive (same root cause: no results screen). — **Critical**
   (shared with 2.5/2.6; one fix)
-- The locked-trends card and the `EmptyState` (0 sessions) present *the same
-  concept* with two different visual treatments; unify copy/tone. — **Low**
+- The locked-trends card and the `EmptyState` (0 sessions) present _the same
+  concept_ with two different visual treatments; unify copy/tone. — **Low**
 - Fetches 100 sessions with no pagination affordance; fine now, flag for
   Phase 3. — **Low**
 - W/M/6M segmented control absent (component exists and is unused here). —
@@ -342,6 +349,7 @@ Settings deep-link; the "wellness tool, not a medical device" line is exactly
 where it should be.
 
 **Weaknesses & issues.**
+
 - **No data controls at all**: no export, no delete-all-sessions, no delete
   account. Onboarding's third privacy promise ("you can delete them anytime")
   is currently false, and account deletion is an App Review requirement. —
@@ -349,12 +357,12 @@ where it should be.
 - Name is read-only ("Name — Ansh") with no edit affordance; spec calls for
   inline edit. — **Medium**
 - Goal shows as a static row; spec says tapping reopens the goal picker as a
-  sheet. Currently a user's goal is *permanent* in the UI. — **High**
+  sheet. Currently a user's goal is _permanent_ in the UI. — **High**
 - Default session duration setting missing (column exists). — **Medium**
 - No avatar/identity visual — the screen starts with a label row; a small
   identity header (initial-circle + name + email) would anchor it. — **Low**
 - Sign out as a full-width `danger` button is heavier than the action
-  warrants; iOS idiom is a plain destructive-red *text* row in a card. —
+  warrants; iOS idiom is a plain destructive-red _text_ row in a card. —
   **Low**
 - Diagnostics section is always expanded, serving the 5% (Dev persona) at the
   cost of the 95%; collapse behind a disclosure or move under "About." —
@@ -388,7 +396,7 @@ This section is the frozen design for the Scan tab. Constraints honored: only
 signals the pipeline actually produces (`hasFace`, `confidence`,
 `boundingBox`, `headPose.stability`, `blink.isCalibrated`, `processedFps`,
 session lifecycle + interruption reasons). "Too close / too far" derive from
-`boundingBox` area; "low light" is *proxied* (Vision reports no lux) by
+`boundingBox` area; "low light" is _proxied_ (Vision reports no lux) by
 sustained low `confidence` with a face intermittently found — the copy is
 therefore phrased as visibility, never as a confident diagnosis of lighting.
 
@@ -396,13 +404,16 @@ therefore phrased as visibility, never as a confident diagnosis of lighting.
 
 1. **Preview region** — top ~55%, 24 pt bottom corner radius, `canvas` behind
    it. Contains: `FaceGuide` oval (centered, ~60% of preview width),
-   `PrivacyBadge` top-left, `StatusPill` top-center.
-2. **Live metrics band** — three compact `LiveMetric` tiles: Blinks · Rate ·
-   Head.
-3. **Control area** — duration chips + primary button (idle), or timer +
-   progress + end button (active).
+   `PrivacyBadge` top-left, `StatusPill` top-center (which recedes to a tiny
+   status dot during a settled scan), and — for the first ~5 s of a session —
+   the `ScanIntroOverlay` ritual card.
+2. **Control area** — duration chips + primary button (idle), or a receded
+   footer (active): small elapsed/target clock, hairline progress, quiet
+   "End early" ghost button. _(Amended 2026-07-24: the live metrics band was
+   removed — live numbers invite watching the phone, and conscious blinking
+   is not natural blinking. Readings live on the results screen.)_
 
-The scan screen never uses `signal-bad` color for *guidance* (too close, face
+The scan screen never uses `signal-bad` color for _guidance_ (too close, face
 lost, low light are neutral coaching, not errors) and never shows a native
 alert while the camera is live.
 
@@ -411,12 +422,12 @@ alert while the camera is live.
 **1. Idle (camera off).** The default tab state. Preview region shows quiet
 `canvas-raised` with the FaceGuide oval at 40% opacity `ink-faint`, breathing
 (scale 1.0→1.03, 4 s loop; static under Reduce Motion). No camera, and the
-badge area shows nothing — the badge appears *only* when the camera is truly
+badge area shows nothing — the badge appears _only_ when the camera is truly
 on, so its presence is always a truthful signal. Pill: "Ready when you are."
 Metrics band shows em-dashes. Controls: duration chips (1 · 2 · 5 min,
 persisted to `default_session_seconds`, default from profile) + "Begin
-check-in." *This state must feel restful, not broken — it is the meditation
-room with the lights off.*
+check-in." _This state must feel restful, not broken — it is the meditation
+room with the lights off._
 
 **2. Permission undetermined.** Replaces the preview content with an in-place
 explainer card (reuse onboarding's camera InfoRows, condensed) + "Allow
@@ -435,6 +446,16 @@ flips — badge before frames, so the promise is kept from the first instant.
 Preview shows `canvas-raised` until first frame (warm-up is ~hundreds of ms;
 no spinner). Pill: "Starting camera…"
 
+**4½. Intro ritual (added 2026-07-24).** Immediately on Begin, the
+`ScanIntroOverlay` fades in over the live camera (scrim `canvas/80`, badge
+stays on top): four short lines — place your phone beside your laptop, keep
+working normally, blink naturally, don't look at the phone — closing with
+"Ocular works best when you forget it's there." Rows stagger in; the whole
+card dismisses itself after ~5 s (tap to skip). The camera and pipeline run
+uninterrupted underneath; the pill stays quiet while the overlay narrates.
+After dismissal the session is in its **focus phase**: the interface recedes
+to elapsed time, hairline progress, the privacy badge, and the status dot.
+
 **5. Searching for face.** First frames arrived, `hasFace` false. Guide oval:
 `ink-faint`, 40%, breathing. Pill: "Looking for you." Metrics stay dashed.
 No timeout nag — searching is a calm, indefinite state.
@@ -445,21 +466,22 @@ Guide transitions to `accent` at 70% with a 300 ms spring (color + one gentle
 "Calibrating — keep your eyes open." Metric tiles show a subtle shimmer
 (not zeros — zeros are lies during calibration).
 
-**7. Good positioning / tracking (calibrated).** Guide settles to `signal-ok`
-stroke at full opacity and *stops animating* — stillness signals "locked."
-Pill: "Tracking," then **fades out entirely after 3 s** — during a good scan
-the interface should recede; the user shouldn't feel watched by their own UI.
-It returns whenever state changes. Tiles go live: Blinks (integer), Rate
-(tone-colored via `blinkRateTone`), Head (single deviation magnitude in
-degrees, tap to expand yaw/pitch/roll for one breath — collapses after 5 s).
-Blink tile does the 120 ms scale pulse per `onBlink` (§6). Session timer runs
-in Display type in the control area with a thin linear progress toward the
-chosen duration.
+**7. Good positioning / tracking (calibrated).** Pill: "Good tracking,"
+which **recedes after 3 s** — during a good scan the interface should
+recede; the user shouldn't feel watched by their own UI. In the focus phase
+it recedes to a tiny `signal-ok` dot (the session's one heartbeat) and the
+guide oval fades out entirely — a frame around your face is an invitation to
+look at it. The pill returns automatically, with contextual coaching,
+whenever state changes, and disappears again once the issue resolves. The
+footer stays small: elapsed/target in callout type, hairline progress toward
+the chosen duration. _(Amended 2026-07-24: previously the guide stayed
+visible as a still `signal-ok` oval and three live tiles ran below — retired
+with the metrics band; see anatomy note.)_
 
 **8. Too close / too far.** Derived from `boundingBox` area vs. preview
 (> ~55% width = close; < ~18% = far), debounced 1 s so momentary lean-ins
 don't nag. Guide stays `accent` but the pill coaches: "A little farther back"
-/ "Come a bit closer." Never blocks measurement — coverage keeps recording;
+/ "Move a little closer." Never blocks measurement — coverage keeps recording;
 this is advice, not a gate. Clears (pill fades) when back in band 1 s.
 
 **9. Low light / poor visibility (proxy).** Sustained (>3 s) `confidence`
@@ -468,12 +490,12 @@ trouble seeing you — a bit more light will help." Neutral tone, never
 `signal-warn` chrome. Clears when confidence recovers.
 
 **10. Face lost mid-session.** Guide reverts to searching treatment (300 ms
-spring back to `ink-faint`, breathing resumes); pill returns: "Looking for
-you." **Timer keeps running** — looking away is normal life, and
-`trackingCoverage` records the truth. Tiles hold their last values at 50%
-opacity rather than blanking (blanking punishes a glance at the door). On
-re-acquire: State 6's acknowledgment pulse, straight back to 7 (calibration
-persists per native layer).
+spring back to `ink-faint`, breathing resumes); pill returns: "Face lost —
+looking for you" (or "Looking for your face" before the first acquisition).
+**Timer keeps running** — looking away is normal life, and
+`trackingCoverage` records the truth. On re-acquire: straight back to 7
+(calibration persists per native layer), and in the focus phase the pill
+confirms "Good tracking" once before receding to the dot.
 
 **11. Interrupted (call, Split View, thermal).** Native reasons surface in the
 pill verbatim-but-humanized: "Paused — on a call." Guide dims to 40%. Timer
@@ -484,11 +506,12 @@ results screen: "Ended early — your phone was busy." No data destroyed, ever.
 **12. Active → auto-complete.** At the chosen duration: success-notification
 haptic, guide performs one soft `signal-ok` pulse, preview fades to 30% over
 400 ms, then `router.replace` to `session/[id]` (in-memory summary; save in
-background). Camera off and badge gone *before* navigation — the user should
+background). Camera off and badge gone _before_ navigation — the user should
 see the badge extinguish.
 
-**13. Ended early by user.** "End session" (ghost-danger text, not a filled
-red button — ending early is a choice, not destruction). ≥ 10 s → same
+**13. Ended early by user.** "End early" (quiet ghost text, not a filled
+red button — ending early is a choice, not destruction, and the one control
+on a receded screen shouldn't be its loudest element). ≥ 10 s → same
 completion path with "ended early" noted. < 10 s → no navigation; a quiet
 toast on the scan screen: "Under 10 seconds — too short to measure." Light
 haptic, no alert, no shame. Return to State 1.
@@ -538,7 +561,7 @@ in favor of the scale (§2.9).
 **Spacing.** The 4-pt scale is defined and mostly followed (16 pt gutters,
 12 pt inter-card). Two drifts: onboarding uses `px-6` (24) while tabs use
 `px-4` (16) — intentional for reading-focused vs. data-focused screens; if
-so, *write that down as a rule* (content screens 24, dashboard screens 16).
+so, _write that down as a rule_ (content screens 24, dashboard screens 16).
 Codify vertical rhythm: screen title → first content = 20 pt, section gap =
 32 pt (`mt-8`, already the de-facto pattern).
 
@@ -589,7 +612,7 @@ outside onboarding. Implementation order of value: blink pulse → guide state
 springs → ring/chart 600 ms fills → button press scale → toast slide. All
 respect Reduce Motion via the established `ReduceMotion.System` pattern.
 
-**Dark mode.** The app *is* dark mode; the risk is light leakage: set
+**Dark mode.** The app _is_ dark mode; the risk is light leakage: set
 `userInterfaceStyle: 'dark'` in `app.config.ts` (currently `'automatic'`),
 add `keyboardAppearance="dark"` to `TextField`, and verify the share sheet /
 alerts moments are acceptable as system-styled. Light theme stays out of
@@ -627,26 +650,28 @@ permission variants gain the standard tone for free). Profile's `Row` and the
 spec's future settings rows should be one `InfoLine` (label/value/chevron)
 component rather than two near-twins.
 
-**Components to split.** `MetricCard` must *not* absorb live-tile duty; split
+**Components to split.** `MetricCard` must _not_ absorb live-tile duty; split
 `LiveMetric` out (different type scale, no border, shimmer state).
 `ErrorState.tsx` exports two components from one file; fine functionally, but
 when `Toast` lands, group the three notice components under
 `components/ui/feedback/` for discoverability.
 
 **Duplication to eliminate.**
+
 - Blink thresholds duplicated in `scan.tsx` vs `tokens.ts` — delete the local
   constants, use `blinkRateTone`/`thresholds`.
 - The load/refresh/error/focus-reload state machine is copy-pasted between
   Today and Insights (~40 lines each) — extract `useSessionList(userId,
-  limit)` into `features/sessions/`.
+limit)` into `features/sessions/`.
 - Day formatting (`formatDayTitle`, `isToday`) is screen-local — move to
   `features/sessions/dates.ts`; the results screen and charts will need it.
-- The privacy contract copy exists in onboarding *and* Profile in different
+- The privacy contract copy exists in onboarding _and_ Profile in different
   words — when the explainer modal lands, both must render from one source
   (spec §4.6 already mandates this; enforce it with a shared
   `privacy-content.ts`).
 
 **Props to standardize.**
+
 - Every leaf component takes `className` and merges via `cn` — already
   consistent; freeze it as a rule.
 - Standardize `tone: 'neutral' | 'ok' | 'warn' | 'bad'` (MetricCard's shape)
@@ -670,27 +695,27 @@ this document endorses beyond `expo-symbols`). Every animation uses
 Reanimated with `ReduceMotion.System`, per the established pattern. Nothing
 below is decorative; each item closes a feedback loop.
 
-| Moment | Animation | Duration / easing | Haptic |
-| --- | --- | --- | --- |
-| Button press | Scale 1 → 0.97 + existing color step | 100 ms spring (damping 15) in, 200 ms spring out | none (buttons don't buzz) |
-| Primary CTA success (save, onboarding complete) | none beyond navigation | — | `notificationAsync(Success)` |
-| Tab switch | System default; no custom transition | — | none — HIG: tabs are silent |
-| Onboarding advance | Existing 250 ms slide+fade (keep) | `duration.page` | none |
-| Onboarding complete → tabs | Root fade (exists) + Today ring fills from 0 | 600 ms ease-out, 150 ms after mount | Success (once, on the tap) |
-| Progress dots | Width/color tween on step change | 200 ms ease-out | none |
-| Scan: begin | Badge fade-in, guide appears | 200 ms | `impactAsync(Light)` |
-| Scan: face acquired | Guide color spring + 1.0→1.02→1.0 pulse | 300 ms spring | none (would fire too often) |
-| Scan: calibrated → locked | Guide settles to `signal-ok`, breathing stops | 300 ms | `impactAsync(Light)` — the "locked on" moment |
-| Blink tick | Blinks tile scale 1.0→1.06→1.0 | 120 ms ease-out (`duration.pulse`) | **never** — spec rule, reaffirmed |
-| Scan: auto-complete | Guide `signal-ok` pulse, preview fade to 30%, replace-navigate | 400 ms ease-in | `notificationAsync(Success)` |
-| Scan: ended early (< 10 s) | Toast slide-up + fade | 250 ms in, 3 s hold, 200 ms out | `impactAsync(Light)` |
-| Scan: interruption | Pill crossfade, guide dim to 40% | 150 ms / 300 ms | `notificationAsync(Warning)` — one, not repeated |
-| Results: hero verdict | Fade + 8 pt rise; delta chips shimmer→resolve | 350 ms ease-out, 100 ms stagger | none (haptic already fired at complete) |
-| Ring/chart fills | 0 → value on first appear per visit | 600 ms ease-out (`duration.fill`) | none |
-| Pull-to-refresh | System control (keep) | — | none (system provides) |
-| Save/settings toggle | Optimistic UI (exists); no animation | — | `selectionAsync()` on segmented-control change |
-| Error (full-screen or inline appears) | Fade-in 200 ms | — | `notificationAsync(Error)` — only for full-screen, never inline |
-| Session row delete (future) | Swipe row collapse | 250 ms | `impactAsync(Medium)` on commit |
+| Moment                                          | Animation                                                      | Duration / easing                                | Haptic                                                          |
+| ----------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------- |
+| Button press                                    | Scale 1 → 0.97 + existing color step                           | 100 ms spring (damping 15) in, 200 ms spring out | none (buttons don't buzz)                                       |
+| Primary CTA success (save, onboarding complete) | none beyond navigation                                         | —                                                | `notificationAsync(Success)`                                    |
+| Tab switch                                      | System default; no custom transition                           | —                                                | none — HIG: tabs are silent                                     |
+| Onboarding advance                              | Existing 250 ms slide+fade (keep)                              | `duration.page`                                  | none                                                            |
+| Onboarding complete → tabs                      | Root fade (exists) + Today ring fills from 0                   | 600 ms ease-out, 150 ms after mount              | Success (once, on the tap)                                      |
+| Progress dots                                   | Width/color tween on step change                               | 200 ms ease-out                                  | none                                                            |
+| Scan: begin                                     | Badge fade-in, guide appears                                   | 200 ms                                           | `impactAsync(Light)`                                            |
+| Scan: face acquired                             | Guide color spring + 1.0→1.02→1.0 pulse                        | 300 ms spring                                    | none (would fire too often)                                     |
+| Scan: calibrated → locked                       | Guide settles to `signal-ok`, breathing stops                  | 300 ms                                           | `impactAsync(Light)` — the "locked on" moment                   |
+| Blink tick                                      | Blinks tile scale 1.0→1.06→1.0                                 | 120 ms ease-out (`duration.pulse`)               | **never** — spec rule, reaffirmed                               |
+| Scan: auto-complete                             | Guide `signal-ok` pulse, preview fade to 30%, replace-navigate | 400 ms ease-in                                   | `notificationAsync(Success)`                                    |
+| Scan: ended early (< 10 s)                      | Toast slide-up + fade                                          | 250 ms in, 3 s hold, 200 ms out                  | `impactAsync(Light)`                                            |
+| Scan: interruption                              | Pill crossfade, guide dim to 40%                               | 150 ms / 300 ms                                  | `notificationAsync(Warning)` — one, not repeated                |
+| Results: hero verdict                           | Fade + 8 pt rise; delta chips shimmer→resolve                  | 350 ms ease-out, 100 ms stagger                  | none (haptic already fired at complete)                         |
+| Ring/chart fills                                | 0 → value on first appear per visit                            | 600 ms ease-out (`duration.fill`)                | none                                                            |
+| Pull-to-refresh                                 | System control (keep)                                          | —                                                | none (system provides)                                          |
+| Save/settings toggle                            | Optimistic UI (exists); no animation                           | —                                                | `selectionAsync()` on segmented-control change                  |
+| Error (full-screen or inline appears)           | Fade-in 200 ms                                                 | —                                                | `notificationAsync(Error)` — only for full-screen, never inline |
+| Session row delete (future)                     | Swipe row collapse                                             | 250 ms                                           | `impactAsync(Medium)` on commit                                 |
 
 Explicit non-recommendations: no haptic per blink (spec rule), no haptics on
 tab switches or button presses (iOS reserves those for the system), no
@@ -707,13 +732,13 @@ advancing on denial are best-in-class. During an actual scan, **no**: the
 promised on-device badge doesn't exist, and a landmark mesh is drawn over the
 user's face by default. The current scan experience visually contradicts the
 onboarding contract. (Behavior is trustworthy — camera provably off until
-Start — but the UI doesn't *show* it, and unshown privacy doesn't build
+Start — but the UI doesn't _show_ it, and unshown privacy doesn't build
 trust.)
 
 **Does the app explain what is happening?** Statically yes (onboarding,
 Profile privacy card). Dynamically, partially: the StatusPill narrates
 tracking well, but calibration ("keep your eyes open") is the only moment
-that explains *why*, and no number anywhere offers "what does this mean?"
+that explains _why_, and no number anywhere offers "what does this mean?"
 The explainer modal (spec §4.7) is the missing piece.
 
 **Does the app explain what is NOT collected?** Yes — this is the copy's
@@ -730,6 +755,7 @@ undermined — they were told they can delete their data anytime, and there is
 no delete control anywhere in the app.
 
 **Improvements, in priority order:**
+
 1. `PrivacyBadge` bound truthfully to camera activity (Critical — §3).
 2. Mesh off by default, behind the existing `show_landmarks` preference
    (Critical).
@@ -745,6 +771,7 @@ no delete control anywhere in the app.
 ## SECTION 8 — App Store Readiness (as App Review would see it)
 
 **Hard blockers (would reject or force resubmission):**
+
 1. **No account deletion** — Guideline 5.1.1(v): apps supporting account
    creation must offer in-app account deletion. Schema cascades are already
    correct (`on delete cascade`); the flow and a Supabase deletion path
@@ -759,32 +786,26 @@ no delete control anywhere in the app.
    who records a session reaches an Alert or a non-tappable row. Session
    results must exist.
 
-**Likely questions / friction (prepare, not blockers):**
-5. **Camera + face analysis will trigger biometric scrutiny.** The position is
-   strong — on-device Vision, nothing persisted, no face templates, no
-   identification — but it must be *stated*: App Review notes should say
-   "face landmarks are processed in memory via Apple's Vision framework;
-   no images or face geometry are stored or transmitted; no user
-   identification is performed" and the privacy nutrition label must match
-   (Health & Fitness data + identifiers linked to account; no "Data Used to
-   Track"). The permission string in `app.plugin.js` is already excellent —
-   keep it verbatim.
-6. **Medical-adjacent claims** — Guideline 1.4.1. Framing is carefully
-   non-medical everywhere except the sign-in "eye-health history" line; fix
-   it, and keep the "wellness tool, not a medical device" line in Profile and
-   the App Store description.
-7. **Terms/EULA + privacy acknowledgment at sign-up** — add the standard
-   footer line with links.
-8. **Email confirmation dead-end** — the confirm screen says "open it on this
-   device" but the app defines no verified deep-link handling for the
-   confirmation return; a reviewer creating an account may stall. Verify the
-   Supabase redirect → `ocular://` scheme path end-to-end.
-9. **Data deletion promise vs. reality** — onboarding says users can delete
-   their metrics "anytime"; review sometimes cross-checks stated privacy
-   claims against the UI. Blocker 1's flow resolves this too.
-10. **`userInterfaceStyle: 'automatic'`** with a hard-dark UI produces light
-    system chrome moments (keyboard, alerts) — not a rejection, but visible
-    jank in review videos. Set `'dark'`.
+**Likely questions / friction (prepare, not blockers):** 5. **Camera + face analysis will trigger biometric scrutiny.** The position is
+strong — on-device Vision, nothing persisted, no face templates, no
+identification — but it must be _stated_: App Review notes should say
+"face landmarks are processed in memory via Apple's Vision framework;
+no images or face geometry are stored or transmitted; no user
+identification is performed" and the privacy nutrition label must match
+(Health & Fitness data + identifiers linked to account; no "Data Used to
+Track"). The permission string in `app.plugin.js` is already excellent —
+keep it verbatim. 6. **Medical-adjacent claims** — Guideline 1.4.1. Framing is carefully
+non-medical everywhere except the sign-in "eye-health history" line; fix
+it, and keep the "wellness tool, not a medical device" line in Profile and
+the App Store description. 7. **Terms/EULA + privacy acknowledgment at sign-up** — add the standard
+footer line with links. 8. **Email confirmation dead-end** — the confirm screen says "open it on this
+device" but the app defines no verified deep-link handling for the
+confirmation return; a reviewer creating an account may stall. Verify the
+Supabase redirect → `ocular://` scheme path end-to-end. 9. **Data deletion promise vs. reality** — onboarding says users can delete
+their metrics "anytime"; review sometimes cross-checks stated privacy
+claims against the UI. Blocker 1's flow resolves this too. 10. **`userInterfaceStyle: 'automatic'`** with a hard-dark UI produces light
+system chrome moments (keyboard, alerts) — not a rejection, but visible
+jank in review videos. Set `'dark'`.
 
 **Clean already (assets for review):** RLS on every table, Keychain sessions,
 no tracking SDKs, no third-party analytics, honest permission copy, camera
@@ -795,39 +816,28 @@ declared, privacy manifest for UserDefaults present.
 
 ## SECTION 9 — Roadmap (implementation order)
 
-Ordered to complete the *core loop* first, then trust, then depth, then
+Ordered to complete the _core loop_ first, then trust, then depth, then
 polish. No new features beyond the frozen spec; several spec items are
 deliberately deferred.
 
 **Milestone A — Close the loop (do first).**
+
 1. Session Results screen (`session/[id]`) with in-memory post-scan path,
    `baseline.ts`, delete action, save-retry banner.
 2. Wire `SessionRow` taps everywhere.
 3. Scan: timer + duration chips + auto-complete (uses
    `default_session_seconds`), replace Alerts with Toast, silent stop-on-blur.
 
-**Milestone B — Keep the promises (trust).**
-4. `PrivacyBadge` + `FaceGuide`; mesh default off behind `show_landmarks`.
-5. `LiveMetric` band replacing the five MetricCards; single Head figure.
-6. Profile data controls: delete session(s), delete account (server path),
-   export.
-7. Copy fixes (sign-in), terms/privacy links, privacy policy URL.
+**Milestone B — Keep the promises (trust).** 4. `PrivacyBadge` + `FaceGuide`; mesh default off behind `show_landmarks`. 5. `LiveMetric` band replacing the five MetricCards; single Head figure. 6. Profile data controls: delete session(s), delete account (server path),
+export. 7. Copy fixes (sign-in), terms/privacy links, privacy policy URL.
 
-**Milestone C — Give it a face (premium).**
-8. SF Symbols via `expo-symbols` across tabs, rows, empty states; real app
-   icon; welcome hero mark.
-9. `expo-haptics` + the §6 motion table.
-10. `WellnessRing` + daily sentence on Today (uses `daily_target_sessions`).
-11. Dynamic Type clamps, `tabular-nums`, `ink-faint` contrast fix,
-    keyboard appearance, `userInterfaceStyle: 'dark'`.
+**Milestone C — Give it a face (premium).** 8. SF Symbols via `expo-symbols` across tabs, rows, empty states; real app
+icon; welcome hero mark. 9. `expo-haptics` + the §6 motion table. 10. `WellnessRing` + daily sentence on Today (uses `daily_target_sessions`). 11. Dynamic Type clamps, `tabular-nums`, `ink-faint` contrast fix,
+keyboard appearance, `userInterfaceStyle: 'dark'`.
 
-**Milestone D — Depth (only after A–C).**
-12. Metric explainer modal (`metric-info/[metric]`), one content source with
-    the privacy contract.
-13. Insights charts (`TrendChart`, aggregator, W/M/6M, pattern + delta cards)
-    and the sessions migration (§7.2: coverage, `end_reason`).
-14. Offline save queue.
-15. App Store assets, TestFlight, review notes.
+**Milestone D — Depth (only after A–C).** 12. Metric explainer modal (`metric-info/[metric]`), one content source with
+the privacy contract. 13. Insights charts (`TrendChart`, aggregator, W/M/6M, pattern + delta cards)
+and the sessions migration (§7.2: coverage, `end_reason`). 14. Offline save queue. 15. App Store assets, TestFlight, review notes.
 
 Explicitly deferred (reaffirming spec non-goals): light theme, Android,
 HealthKit, notifications, any new metric the pipeline doesn't produce.
@@ -847,10 +857,11 @@ finish** — no icons, no haptics, no motion outside onboarding. Top-10 apps
 are felt in the hands; this one is currently only read.
 
 **Highest-leverage improvements (in order):**
+
 1. Session Results screen — turns measurement into ritual; everything else
    points at it.
 2. Privacy badge + mesh-off default — converts the app's best asset (its
-   actual privacy architecture) into something users can *see*.
+   actual privacy architecture) into something users can _see_.
 3. SF Symbols + app icon — cheapest large jump in perceived quality.
 4. Scan timer/duration/auto-complete — makes the core ritual self-explanatory.
 5. WellnessRing + daily sentence — gives Today a heart and the target
@@ -860,6 +871,7 @@ are felt in the hands; this one is currently only read.
    trust story.
 
 **What should absolutely NOT be changed:**
+
 - The color system, radius scale, and no-shadow depth model.
 - The four-tab IA and pushed-results decision.
 - The states discipline (skeleton-mirrors-layout, empty-vs-error distinction,
@@ -875,33 +887,33 @@ are felt in the hands; this one is currently only read.
 
 ### The next 25 implementation tasks
 
-| # | Task | Difficulty | User impact |
-| :-: | --- | :-: | :-: |
-| 1 | Session Results screen (in-memory post-scan + from-history), with `baseline.ts` | Hard | High |
-| 2 | Make `SessionRow` navigate to results on Today + Insights | Easy | High |
-| 3 | Scan: elapsed timer + linear progress in control area (tabular-nums) | Medium | High |
-| 4 | Scan: duration chips (1/2/5 min) persisted to `default_session_seconds`, auto-complete | Medium | High |
-| 5 | `Toast` component; replace all `Alert.alert` on Scan; silent stop-on-blur | Medium | High |
-| 6 | `PrivacyBadge` truthfully bound to camera activity, tap → privacy popover | Medium | High |
-| 7 | `FaceGuide` oval with §3 state machine (searching/acquired/locked/lost) | Hard | High |
-| 8 | Mesh off by default; wire `show_landmarks` profile toggle; drop `landmarks: true` | Easy | High |
-| 9 | `LiveMetric` compact tile; replace Scan's five MetricCards; single Head figure with tap-expand | Medium | Medium |
-| 10 | Adopt `expo-symbols`: tab bar, InfoRows, empty states, chevrons via typed `Icon` | Medium | High |
-| 11 | Real app icon + welcome hero mark | Medium | High |
-| 12 | Add `expo-haptics`; implement §6 haptic map | Easy | Medium |
-| 13 | Motion pass: button press scale, guide springs, blink pulse, dot tweens | Medium | Medium |
-| 14 | `WellnessRing` (`ProgressRing` + hero number + sentence) on Today, using `daily_target_sessions` | Hard | High |
-| 15 | `daily-sentence.ts` pure rules + tests (spec §4.2 sentence logic) | Medium | Medium |
-| 16 | Account deletion flow (client UI + server-side deletion path) | Hard | High |
-| 17 | Profile data controls: delete session, delete all sessions (two-step), export JSON | Medium | High |
-| 18 | Goal + name editing in Profile (sheet reusing GoalCard grid; inline name edit) | Medium | Medium |
-| 19 | Dynamic Type: `maxFontSizeMultiplier` policy, `min-h` buttons, XL audit of goal grid | Medium | Medium |
-| 20 | Contrast + dark chrome: lighten `ink-faint` for text, `keyboardAppearance="dark"`, `userInterfaceStyle: 'dark'` | Easy | Medium |
-| 21 | Consistency sweep: tokens for all hardcoded hex, named type scale everywhere, extract `Card`/`SectionHeader`/`Screen`, dedupe thresholds + `useSessionList` | Medium | Low |
-| 22 | Copy fixes: sign-in "eye-health"→"check-in history"; terms/privacy links at sign-up; privacy policy URL in Profile | Easy | Medium |
-| 23 | Metric explainer modal (`metric-info/[metric]`) with single-source privacy content | Medium | Medium |
-| 24 | Sessions migration §7.2 (`tracking_coverage`, `completed`, `end_reason`) + persist them | Easy | Low |
-| 25 | Insights: SegmentedControl ranges + `TrendChart` + `insights-aggregator` with tests | Hard | High |
+|  #  | Task                                                                                                                                                        | Difficulty | User impact |
+| :-: | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------: | :---------: |
+|  1  | Session Results screen (in-memory post-scan + from-history), with `baseline.ts`                                                                             |    Hard    |    High     |
+|  2  | Make `SessionRow` navigate to results on Today + Insights                                                                                                   |    Easy    |    High     |
+|  3  | Scan: elapsed timer + linear progress in control area (tabular-nums)                                                                                        |   Medium   |    High     |
+|  4  | Scan: duration chips (1/2/5 min) persisted to `default_session_seconds`, auto-complete                                                                      |   Medium   |    High     |
+|  5  | `Toast` component; replace all `Alert.alert` on Scan; silent stop-on-blur                                                                                   |   Medium   |    High     |
+|  6  | `PrivacyBadge` truthfully bound to camera activity, tap → privacy popover                                                                                   |   Medium   |    High     |
+|  7  | `FaceGuide` oval with §3 state machine (searching/acquired/locked/lost)                                                                                     |    Hard    |    High     |
+|  8  | Mesh off by default; wire `show_landmarks` profile toggle; drop `landmarks: true`                                                                           |    Easy    |    High     |
+|  9  | `LiveMetric` compact tile; replace Scan's five MetricCards; single Head figure with tap-expand                                                              |   Medium   |   Medium    |
+| 10  | Adopt `expo-symbols`: tab bar, InfoRows, empty states, chevrons via typed `Icon`                                                                            |   Medium   |    High     |
+| 11  | Real app icon + welcome hero mark                                                                                                                           |   Medium   |    High     |
+| 12  | Add `expo-haptics`; implement §6 haptic map                                                                                                                 |    Easy    |   Medium    |
+| 13  | Motion pass: button press scale, guide springs, blink pulse, dot tweens                                                                                     |   Medium   |   Medium    |
+| 14  | `WellnessRing` (`ProgressRing` + hero number + sentence) on Today, using `daily_target_sessions`                                                            |    Hard    |    High     |
+| 15  | `daily-sentence.ts` pure rules + tests (spec §4.2 sentence logic)                                                                                           |   Medium   |   Medium    |
+| 16  | Account deletion flow (client UI + server-side deletion path)                                                                                               |    Hard    |    High     |
+| 17  | Profile data controls: delete session, delete all sessions (two-step), export JSON                                                                          |   Medium   |    High     |
+| 18  | Goal + name editing in Profile (sheet reusing GoalCard grid; inline name edit)                                                                              |   Medium   |   Medium    |
+| 19  | Dynamic Type: `maxFontSizeMultiplier` policy, `min-h` buttons, XL audit of goal grid                                                                        |   Medium   |   Medium    |
+| 20  | Contrast + dark chrome: lighten `ink-faint` for text, `keyboardAppearance="dark"`, `userInterfaceStyle: 'dark'`                                             |    Easy    |   Medium    |
+| 21  | Consistency sweep: tokens for all hardcoded hex, named type scale everywhere, extract `Card`/`SectionHeader`/`Screen`, dedupe thresholds + `useSessionList` |   Medium   |     Low     |
+| 22  | Copy fixes: sign-in "eye-health"→"check-in history"; terms/privacy links at sign-up; privacy policy URL in Profile                                          |    Easy    |   Medium    |
+| 23  | Metric explainer modal (`metric-info/[metric]`) with single-source privacy content                                                                          |   Medium   |   Medium    |
+| 24  | Sessions migration §7.2 (`tracking_coverage`, `completed`, `end_reason`) + persist them                                                                     |    Easy    |     Low     |
+| 25  | Insights: SegmentedControl ranges + `TrendChart` + `insights-aggregator` with tests                                                                         |    Hard    |    High     |
 
 Tasks 1–9 complete the product's promise; 10–15 make it feel like an Apple
 app; 16–22 make it shippable; 23–25 make it worth keeping. Quality over
@@ -942,8 +954,8 @@ goals-screen copy now states check-ins are always user-initiated; (5)
 a per-session baseline (first ~30 stable samples, ~2 s), not alignment with
 the camera — camera-relative scoring pinned everyone at ~100. Sessions
 shorter than the baseline window report `null`. Documented trade-off:
-start-slumped-stay-slumped scores well; copy must describe *change within
-the session*, never absolute posture. §3's scan-state design and the §10
+start-slumped-stay-slumped scores well; copy must describe _change within
+the session_, never absolute posture. §3's scan-state design and the §10
 checklist are unchanged by any of this.
 
 **2026-07-20 — Milestone A, Tasks 1–2 (Session Results).** Shipped
@@ -955,8 +967,8 @@ From history, rows fetch by id behind a layout-mirroring skeleton;
 unknown/deleted ids get a friendly error. Hero: blink rate vs. a trailing
 14-session duration-weighted baseline (`baseline.ts`, pure + 21 tests) with a
 delta chip and a one-sentence verdict (rule order: no rate → first-ever →
-thin history → absolutely low → significant delta → steady; baseline *load
-failure* downgrades to absolute thresholds rather than claiming first-ever).
+thin history → absolutely low → significant delta → steady; baseline _load
+failure_ downgrades to absolute thresholds rather than claiming first-ever).
 Metric row: blinks, head steadiness, duration. Delete with confirmation,
 non-optimistic. `SessionRow` now navigates on Today and Insights; shared
 `dates.ts` deduped day-title/duration formatting; Today's daily rate reuses
@@ -984,11 +996,79 @@ metrics show em-dashes, not stale values. Not in this slice: haptics (§6 map,
 Task 12), `FaceGuide`/`PrivacyBadge`/`LiveMetric` band (Tasks 6, 7, 9),
 "Ended early" annotation on results (needs `end_reason`, Task 24).
 
+**2026-07-22 — Subscription architecture (no purchases).** Added
+`src/features/subscription/`: a `SubscriptionProvider` mounted above the
+router, `useEntitlements()` as the one hook every gate reads, and pure policy
+in `entitlements.ts` (Free / Pro Monthly / Pro Annual — the two paid tiers are
+capability-identical by construction, asserted by test). Free is 3 completed
+check-ins per device-local day, the 10 newest sessions visible, and summary
+statistics without charts; Pro removes all three. **Every limit is
+presentational** — the repository still writes and fetches everything, all
+aggregates (Today's ring and cards, Insights' averages and comparisons) are
+computed from the full history, and the data export is untouched, so a hidden
+row is never a lost one. Gates fail open: unknown usage and an unresolved tier
+both grant access, because a network hiccup must never cost the user a
+measurement. Tier resolution lives behind `entitlement-source.ts` with the
+StoreKit branch stubbed and a persisted development override (dev/preview
+builds only, switchable from Profile › Plan). Wired into Scan (the allowance
+card replaces the begin control when spent; usage counted server-side via
+`countSessionsSince`, refreshed on focus), Today (visible cap, "n older
+check-ins kept" footer, daily tally), and Insights (charts, previous-range
+comparison chips, and the pattern card behind `hasFullInsights`; the four
+summary cards stay on every plan). Session Results is deliberately ungated.
+Not in this slice: StoreKit purchases, paywall screen, restore, pricing copy.
+
+**2026-07-22 — Premium experience (still no StoreKit).** The paywall, frozen
+as design: `app/(app)/premium.tsx`, an iOS card modal over the signed-in
+stack ($3.99/mo, $39.99/yr with a floored — never rounded-up — "Save 16%"
+badge; annual preselected). Anatomy: close always first, eye mark hero,
+trigger-aware opening line, five feature rows (AI reports and ambient
+check-ins carry "Coming soon" chips — shipped and planned are never visually
+interchangeable), GoalCard-pattern plan radios in tabular figures, CTA,
+Restore Purchases placeholder, terms/privacy links, and the trust move: the
+sheet itself states that free never loses data. Staggered FadeInDown
+entrance, Reduce Motion respected. **Presentation ethic, now product law: the
+sheet only ever opens from an explicit tap.** The four triggers surface
+inline premium moments instead — (1) third check-in of the day → card on
+post-scan results, entering after the verdict's own rise; (2) attempted
+fourth → the scan limit card's "See Ocular Pro" action; (3) locked Insights →
+`LockedInsightsCard`, a frosted scrim over a _decorative_ waveform (layered
+scrim, not `expo-blur` — no new native dep, and nothing real ever sits under
+the frost to leak); (4) scrolling past the 10th session → footer cards on
+Today and Insights. Every surface requires recorded usage, so the paywall is
+structurally unreachable before first value and from onboarding. Copy is
+tested for voice: no medical framing, no blame ("ran out", "exceeded" are
+test failures). Purchase/restore run through the entitlement layer's
+StoreKit seam — simulated grant in dev/preview (the full upgrade →
+gates-reopen flow is walkable on device), honest "not available in this
+build" in production. `PlanLimitCard` gained the standardized `action` prop;
+Profile's Plan section links into the sheet. 175 tests green.
+
 **Next session:** Milestone B — `PrivacyBadge` + `FaceGuide` (Tasks 6–7),
 mesh off by default behind `show_landmarks` (Task 8), `LiveMetric` band
 (Task 9).
 
+**2026-07-24 — The disappearing scan (behavioral redesign).** The remaining
+weakness was behavioral: users watched the phone while it measured them, and
+watching produces conscious blinking — the instrument was corrupting its own
+reading. The scan experience was redesigned so the app gets out of the way:
+(1) new `ScanIntroOverlay` (§3 state 4½) fades in over the live camera on
+Begin — place the phone beside your laptop, keep working, blink naturally,
+don't look at the phone — and dismisses itself after ~5 s (tap to skip);
+(2) a **focus phase** follows, where the UI recedes to elapsed time, a
+hairline progress bar, the `PrivacyBadge`, and a tiny `signal-ok` status
+dot; the `FaceGuide` gained a `hidden` state (locked ⇒ invisible) and the
+**live metrics band was retired** — its numbers were the main reason to
+stare at the phone, and they belong to the results screen; (3) `StatusPill`
+now recedes to the dot when settled and returns automatically with
+contextual coaching ("Looking for your face" / "Face lost — looking for
+you" / "Move a little closer" / "Good tracking"), disappearing again once
+the issue resolves — never blocking, never alerting; (4) "End session"
+(danger text) became "End early" (ghost). §3's anatomy and states 4–13
+amended in place. Measurement pipeline untouched. Typecheck, lint, and all
+202 tests green.
+
 ---
 
-*End of design review. This document freezes the product vision; changes to
-it should be deliberate, written, and rare.*
+_End of design review. This document freezes the product vision; changes to
+it should be deliberate, written, and rare._

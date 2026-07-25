@@ -43,6 +43,16 @@ export function formatClockTime(date: Date): string {
   return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
 }
 
+/** Compact localized date, e.g. "Jul 21" — list rows and chart axes. */
+export function formatShortDate(date: Date): string {
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+/** Spelled-out date, e.g. "July 21" — for spoken labels, where "Jul" reads badly. */
+export function formatSpokenDate(date: Date): string {
+  return date.toLocaleDateString(undefined, { month: 'long', day: 'numeric' });
+}
+
 /**
  * Compact duration: "45s", "2m 10s", "1h 4m".
  *

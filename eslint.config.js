@@ -6,7 +6,16 @@ module.exports = defineConfig([
   expoConfig,
   prettierConfig,
   {
-    ignores: ['dist/*', 'ios/*', 'android/*', '.expo/*', 'node_modules/*'],
+    // `supabase/functions` runs on Deno with `jsr:` imports and Deno globals;
+    // linting it with the React Native config only produces false positives.
+    ignores: [
+      'dist/*',
+      'ios/*',
+      'android/*',
+      '.expo/*',
+      'node_modules/*',
+      'supabase/functions/*',
+    ],
   },
   {
     // Scoped to TypeScript: the @typescript-eslint plugin is only registered by

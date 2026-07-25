@@ -8,11 +8,12 @@ import {
   View,
 } from 'react-native';
 import { Link } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
+import { Screen } from '@/components/ui/Screen';
 import { TextField } from '@/components/ui/TextField';
 import { describeAuthError, useAuthStore } from '@/features/auth/auth-store';
+import { LEGAL_URLS, openLegalPage } from '@/lib/legal';
 
 /** Mirrors the Supabase project's minimum; enforced here for instant feedback. */
 const MIN_PASSWORD_LENGTH = 8;
@@ -57,26 +58,32 @@ export default function SignUpScreen() {
 
   if (needsConfirmation) {
     return (
-      <SafeAreaView className="flex-1 bg-canvas">
+      <Screen edges={['top', 'bottom']}>
         <View className="flex-1 justify-center px-6">
-          <Text accessibilityRole="header" className="text-title1 font-semibold text-ink">
+          <Text
+            accessibilityRole="header"
+            maxFontSizeMultiplier={1.4}
+            className="text-title1 font-semibold text-ink"
+          >
             Confirm your email
           </Text>
-          <Text className="mt-3 text-base leading-6 text-ink-muted">
+          <Text maxFontSizeMultiplier={2} className="mt-3 text-base leading-6 text-ink-muted">
             We sent a confirmation link to{' '}
-            <Text className="font-medium text-ink">{email.trim()}</Text>. Open it on this device to
-            finish setting up your account.
+            <Text maxFontSizeMultiplier={2} className="font-medium text-ink">
+              {email.trim()}
+            </Text>
+            . Open it on this device to finish setting up your account.
           </Text>
           <Link href="/(auth)/sign-in" className="mt-8 text-base font-medium text-accent">
             Back to sign in
           </Link>
         </View>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-canvas">
+    <Screen edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -86,10 +93,14 @@ export default function SignUpScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View className="mb-10">
-            <Text accessibilityRole="header" className="text-title1 font-semibold text-ink">
+            <Text
+              accessibilityRole="header"
+              maxFontSizeMultiplier={1.4}
+              className="text-title1 font-semibold text-ink"
+            >
               Create your account
             </Text>
-            <Text className="mt-2 text-base text-ink-muted">
+            <Text maxFontSizeMultiplier={2} className="mt-2 text-base text-ink-muted">
               Ocular measures blink rate and posture on-device. Video never leaves your phone.
             </Text>
           </View>
@@ -143,7 +154,11 @@ export default function SignUpScreen() {
             />
 
             {error ? (
-              <Text accessibilityLiveRegion="polite" className="text-sm leading-5 text-signal-bad">
+              <Text
+                maxFontSizeMultiplier={2}
+                accessibilityLiveRegion="polite"
+                className="text-sm leading-5 text-signal-bad"
+              >
                 {error}
               </Text>
             ) : null}
@@ -155,10 +170,39 @@ export default function SignUpScreen() {
               disabled={!canSubmit}
               className="mt-2"
             />
+
+            {/* Consent stated at the moment of consent, in one Text run so the
+                links share the sentence's baseline. Pressable spans rather
+                than Links: these open in an in-app browser sheet, so a
+                half-filled form is still here on return. */}
+            <Text
+              maxFontSizeMultiplier={2}
+              className="text-center text-xs leading-5 text-ink-faint"
+            >
+              By creating an account you agree to our{' '}
+              <Text
+                maxFontSizeMultiplier={2}
+                accessibilityRole="link"
+                className="font-medium text-ink-muted underline"
+                onPress={() => void openLegalPage(LEGAL_URLS.terms)}
+              >
+                Terms of Service
+              </Text>{' '}
+              and{' '}
+              <Text
+                maxFontSizeMultiplier={2}
+                accessibilityRole="link"
+                className="font-medium text-ink-muted underline"
+                onPress={() => void openLegalPage(LEGAL_URLS.privacyPolicy)}
+              >
+                Privacy Policy
+              </Text>
+              .
+            </Text>
           </View>
 
           {/* Single Text run for shared baseline — see the sign-in footer. */}
-          <Text className="mt-8 text-center text-sm text-ink-muted">
+          <Text maxFontSizeMultiplier={2} className="mt-8 text-center text-sm text-ink-muted">
             Already have an account?{' '}
             <Link href="/(auth)/sign-in" className="font-medium text-accent">
               Sign in
@@ -166,6 +210,6 @@ export default function SignUpScreen() {
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </Screen>
   );
 }

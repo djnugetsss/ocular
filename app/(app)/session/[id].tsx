@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Animated, {
   Easing,
@@ -11,6 +10,8 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Screen } from '@/components/ui/Screen';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Icon } from '@/components/ui/Icon';
 import { MetricCard } from '@/components/ui/MetricCard';
@@ -32,6 +33,8 @@ import {
   saveSession,
 } from '@/features/sessions/session-repository';
 import { useSessionResultsStore } from '@/features/sessions/session-results-store';
+import { PostScanPremiumMoment } from '@/features/subscription/components/PostScanPremiumMoment';
+import { useEntitlements } from '@/features/subscription/subscription-provider';
 import { cn } from '@/lib/cn';
 import { blinkRateTone, colors, postureTone, type Tone } from '@/theme/tokens';
 import type { Session } from '@/lib/supabase/database.types';
@@ -81,6 +84,7 @@ export default function SessionResultsScreen() {
   const isPostScan = from === 'scan';
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const entitlements = useEntitlements();
 
   const handoff = useSessionResultsStore((state) => state.handoff);
   const markSaved = useSessionResultsStore((state) => state.markSaved);
@@ -210,6 +214,23 @@ export default function SessionResultsScreen() {
     }
   }, [memory, user, markSaved]);
 
+  // ── Leaving ────────────────────────────────────────────────────────────────
+  const leave = useCallback(() => {
+    // Post-scan, "Done" completes the ritual on Today — not back on the scan
+    // viewfinder, whose session is already over.
+    //
+    // One navigation call, not `back()` followed by `navigate()`: dispatching
+    // both in a tick races the pop against the tab switch, and the second call
+    // can be swallowed or land before the first commits. Navigating to the
+    // group pops this screen *and* resolves to the group's initial route
+    // (Today) on its own.
+    if (isPostScan) {
+      router.navigate('/(app)/(tabs)');
+      return;
+    }
+    router.back();
+  }, [router, isPostScan]);
+
   // ── Delete ─────────────────────────────────────────────────────────────────
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -223,14 +244,16 @@ export default function SessionResultsScreen() {
       // Today and Insights refetch on focus, so the row disappears without
       // any cross-screen bookkeeping here.
       if (memory) clearHandoff();
-      router.back();
+      // Same exit as "Done": deleting a just-recorded check-in should land on
+      // Today, not drop the user back onto the viewfinder.
+      leave();
     } catch {
       // Not optimistic on purpose: the row is only gone from the UI once the
       // server agrees it is gone.
       setDeleteError("Couldn't delete this session — check your connection and try again.");
       setIsDeleting(false);
     }
-  }, [savedId, memory, clearHandoff, router]);
+  }, [savedId, memory, clearHandoff, leave]);
 
   const confirmDelete = useCallback(() => {
     Alert.alert(
@@ -242,14 +265,6 @@ export default function SessionResultsScreen() {
       ]
     );
   }, [handleDelete]);
-
-  // ── Leaving ────────────────────────────────────────────────────────────────
-  const leave = useCallback(() => {
-    router.back();
-    // Post-scan, "Done" completes the ritual and lands on Today — not back on
-    // the scan viewfinder, whose session is already over.
-    if (isPostScan) router.navigate('/(app)/(tabs)');
-  }, [router, isPostScan]);
 
   const handleLeave = useCallback(() => {
     if (view && view.savedId === null) {
@@ -284,25 +299,25 @@ export default function SessionResultsScreen() {
   if (!view) {
     if (fetchState === 'missing') {
       return (
-        <SafeAreaView className="flex-1 bg-canvas">
+        <Screen edges={['top', 'bottom']}>
           <ErrorState
             title="This session isn't available"
             message="It may have been deleted on another device."
             onRetry={() => router.back()}
             retryLabel="Go back"
           />
-        </SafeAreaView>
+        </Screen>
       );
     }
     if (fetchState === 'error') {
       return (
-        <SafeAreaView className="flex-1 bg-canvas">
+        <Screen edges={['top', 'bottom']}>
           <ErrorState
             title="Couldn't load this session"
             message="Check your connection and try again."
             onRetry={retryLoad}
           />
-        </SafeAreaView>
+        </Screen>
       );
     }
     return <ResultsSkeleton />;
@@ -317,7 +332,7 @@ export default function SessionResultsScreen() {
       : 'neutral';
 
   return (
-    <SafeAreaView className="flex-1 bg-canvas">
+    <Screen edges={['top', 'bottom']}>
       <ScrollView
         className="flex-1"
         contentContainerClassName="px-4 pb-8"
@@ -326,10 +341,14 @@ export default function SessionResultsScreen() {
         {/* Header */}
         <View className="flex-row items-start justify-between pt-2">
           <View className="flex-1 pr-4">
-            <Text accessibilityRole="header" className="text-title1 font-semibold text-ink">
+            <Text
+              accessibilityRole="header"
+              maxFontSizeMultiplier={1.4}
+              className="text-title1 font-semibold text-ink"
+            >
               {isPostScan ? 'Check-in complete' : formatDayTitle(view.startedAt)}
             </Text>
-            <Text className="mt-1 text-sm text-ink-muted">
+            <Text maxFontSizeMultiplier={2} className="mt-1 text-sm text-ink-muted">
               Completed {formatClockTime(view.endedAt ?? view.startedAt)}
               {' · '}
               {formatDuration(view.durationSeconds)}
@@ -359,8 +378,10 @@ export default function SessionResultsScreen() {
           >
             <View className="flex-row items-center justify-between gap-3">
               <View className="flex-1">
-                <Text className="text-sm font-semibold text-signal-warn">Not saved yet</Text>
-                <Text className="mt-1 text-xs leading-4 text-ink-muted">
+                <Text maxFontSizeMultiplier={2} className="text-sm font-semibold text-signal-warn">
+                  Not saved yet
+                </Text>
+                <Text maxFontSizeMultiplier={2} className="mt-1 text-xs leading-4 text-ink-muted">
                   The measurement is safe on this screen, but couldn&apos;t be written to your
                   history.
                 </Text>
@@ -374,89 +395,102 @@ export default function SessionResultsScreen() {
               />
             </View>
             {saveError ? (
-              <Text className="mt-2 text-xs leading-4 text-signal-bad">{saveError}</Text>
+              <Text maxFontSizeMultiplier={2} className="mt-2 text-xs leading-4 text-signal-bad">
+                {saveError}
+              </Text>
             ) : null}
           </View>
         ) : null}
 
         {/* Hero */}
-        <Animated.View
-          style={heroStyle}
-          accessible
-          accessibilityLabel={[
-            view.blinksPerMinute != null
-              ? `Blink rate ${Math.round(view.blinksPerMinute)} per minute`
-              : 'Blink rate unavailable',
-            delta ? delta.label : null,
-            verdict ? verdict.sentence : 'Comparing with your baseline',
-          ]
-            .filter(Boolean)
-            .join('. ')}
-          className="mt-6 items-center rounded-card border border-hairline bg-canvas-raised px-6 py-8"
-        >
-          <View className="h-12 w-12 items-center justify-center rounded-full bg-canvas-overlay">
-            <Icon
-              name={verdict?.symbol ?? 'hourglass'}
-              size={20}
-              color={verdict ? TONE_COLOR[verdict.tone] : colors.ink.muted}
-            />
-          </View>
-
-          <View className="mt-5 flex-row items-baseline gap-2">
-            <Text
-              className={cn(
-                'text-[56px] font-semibold leading-[62px] tracking-[-2px]',
-                TONE_TEXT[rateTone]
-              )}
-            >
-              {view.blinksPerMinute != null ? Math.round(view.blinksPerMinute).toString() : '—'}
-            </Text>
-            <Text className="text-base text-ink-muted">blinks/min</Text>
-          </View>
-
-          {baselineState === 'loading' ? (
-            <Skeleton className="mt-3 h-7 w-32 rounded-full" />
-          ) : delta ? (
-            <View
-              className={cn(
-                'mt-3 flex-row items-center gap-1.5 rounded-full px-3 py-1.5',
-                chipTone === 'neutral' && 'bg-canvas-overlay',
-                chipTone === 'ok' && 'bg-signal-ok/15',
-                chipTone === 'warn' && 'bg-signal-warn/15'
-              )}
-            >
+        {/* The animated wrapper stays a plain Animated.View so the tween keeps
+            its own node; the card treatment moves to the shared primitive. */}
+        <Animated.View style={heroStyle} className="mt-6">
+          <Card
+            padded={false}
+            accessible
+            accessibilityLabel={[
+              view.blinksPerMinute != null
+                ? `Blink rate ${Math.round(view.blinksPerMinute)} per minute`
+                : 'Blink rate unavailable',
+              delta ? delta.label : null,
+              verdict ? verdict.sentence : 'Comparing with your baseline',
+            ]
+              .filter(Boolean)
+              .join('. ')}
+            className="items-center px-6 py-8"
+          >
+            <View className="h-12 w-12 items-center justify-center rounded-full bg-canvas-overlay">
               <Icon
-                name={
-                  delta.direction === 'above'
-                    ? 'arrow.up.right'
-                    : delta.direction === 'below'
-                      ? 'arrow.down.right'
-                      : 'equal'
-                }
-                size={11}
-                color={chipTone === 'neutral' ? colors.ink.muted : TONE_COLOR[chipTone]}
+                name={verdict?.symbol ?? 'hourglass'}
+                size={20}
+                color={verdict ? TONE_COLOR[verdict.tone] : colors.ink.muted}
               />
+            </View>
+
+            <View className="mt-5 flex-row items-baseline gap-2">
+              {/* Tabular figures: this number is re-read against the delta
+                  chip and the metric grid below it, and proportional digits
+                  make those comparisons misalign. Clamped per §4's Display
+                  policy so it cannot push the verdict off screen. */}
               <Text
-                className={cn(
-                  'text-xs font-medium',
-                  chipTone === 'neutral' ? 'text-ink-muted' : TONE_TEXT[chipTone]
-                )}
+                maxFontSizeMultiplier={1.4}
+                style={{ fontVariant: ['tabular-nums'] }}
+                className={cn('text-display font-semibold', TONE_TEXT[rateTone])}
               >
-                {delta.label}
+                {view.blinksPerMinute != null ? Math.round(view.blinksPerMinute).toString() : '—'}
+              </Text>
+              <Text maxFontSizeMultiplier={2} className="text-base text-ink-muted">
+                blinks/min
               </Text>
             </View>
-          ) : null}
 
-          {baselineState === 'loading' ? (
-            <Skeleton className="mt-5 h-4 w-56 rounded-md" />
-          ) : (
-            <Text
-              accessibilityLiveRegion="polite"
-              className="mt-5 max-w-[280px] text-center text-base leading-6 text-ink-muted"
-            >
-              {verdict?.sentence}
-            </Text>
-          )}
+            {baselineState === 'loading' ? (
+              <Skeleton className="mt-3 h-7 w-32 rounded-full" />
+            ) : delta ? (
+              <View
+                className={cn(
+                  'mt-3 flex-row items-center gap-1.5 rounded-full px-3 py-1.5',
+                  chipTone === 'neutral' && 'bg-canvas-overlay',
+                  chipTone === 'ok' && 'bg-signal-ok/15',
+                  chipTone === 'warn' && 'bg-signal-warn/15'
+                )}
+              >
+                <Icon
+                  name={
+                    delta.direction === 'above'
+                      ? 'arrow.up.right'
+                      : delta.direction === 'below'
+                        ? 'arrow.down.right'
+                        : 'equal'
+                  }
+                  size={11}
+                  color={chipTone === 'neutral' ? colors.ink.muted : TONE_COLOR[chipTone]}
+                />
+                <Text
+                  maxFontSizeMultiplier={2}
+                  className={cn(
+                    'text-xs font-medium',
+                    chipTone === 'neutral' ? 'text-ink-muted' : TONE_TEXT[chipTone]
+                  )}
+                >
+                  {delta.label}
+                </Text>
+              </View>
+            ) : null}
+
+            {baselineState === 'loading' ? (
+              <Skeleton className="mt-5 h-4 w-56 rounded-md" />
+            ) : (
+              <Text
+                maxFontSizeMultiplier={2}
+                accessibilityLiveRegion="polite"
+                className="mt-5 max-w-[280px] text-center text-base leading-6 text-ink-muted"
+              >
+                {verdict?.sentence}
+              </Text>
+            )}
+          </Card>
         </Animated.View>
 
         {/* Metric grid */}
@@ -479,13 +513,29 @@ export default function SessionResultsScreen() {
             tone={postureTone(view.postureScore)}
             hint={view.postureScore != null ? 'Drift from your start' : 'Too short to score'}
           />
-          <MetricCard className="flex-1" label="Duration" value={formatDuration(view.durationSeconds)} />
+          <MetricCard
+            className="flex-1"
+            label="Duration"
+            value={formatDuration(view.durationSeconds)}
+          />
         </View>
+
+        {/* Trigger 1: this check-in was the day's last included one. Only on
+            the post-scan path (history browsing is not a sales moment), only
+            for free plans (the condition here keeps the component's usage
+            count entirely off the wire for Pro), only when the session
+            actually saved — an unsaved measurement's screen belongs to the
+            retry banner, not an upsell. Inline and after the verdict, never
+            over it: the results screen is the ritual's payoff. */}
+        {isPostScan && !entitlements.isPro && view.savedId !== null ? (
+          <PostScanPremiumMoment />
+        ) : null}
 
         {/* Footer actions */}
         <View className="mt-8 gap-3">
           {deleteError ? (
             <Text
+              maxFontSizeMultiplier={2}
               accessibilityLiveRegion="polite"
               className="text-center text-sm text-signal-bad"
             >
@@ -505,14 +555,14 @@ export default function SessionResultsScreen() {
           ) : null}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 /** Mirrors the loaded layout so data lands positionally (states discipline). */
 function ResultsSkeleton() {
   return (
-    <SafeAreaView className="flex-1 bg-canvas">
+    <Screen edges={['top', 'bottom']}>
       <View
         accessibilityLabel="Loading session"
         accessibilityLiveRegion="polite"
@@ -528,6 +578,6 @@ function ResultsSkeleton() {
         </View>
         <Skeleton className="mt-8 h-14" />
       </View>
-    </SafeAreaView>
+    </Screen>
   );
 }

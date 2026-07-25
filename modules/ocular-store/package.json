@@ -1,0 +1,7 @@
+{
+  "name": "ocular-store",
+  "version": "0.1.0",
+  "description": "StoreKit 2 subscriptions for Ocular: products, purchase, restore, and verified entitlements.",
+  "main": "index.ts",
+  "private": true
+}

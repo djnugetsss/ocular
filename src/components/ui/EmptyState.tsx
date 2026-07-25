@@ -36,8 +36,12 @@ export function EmptyState({ symbol, title, body, action, footer, className }: E
         </View>
       ) : null}
 
-      <Text className="text-center text-lg font-semibold text-ink">{title}</Text>
-      <Text className="text-center text-base leading-6 text-ink-muted">{body}</Text>
+      <Text maxFontSizeMultiplier={1.4} className="text-center text-title2 font-semibold text-ink">
+        {title}
+      </Text>
+      <Text maxFontSizeMultiplier={2} className="text-center text-base leading-6 text-ink-muted">
+        {body}
+      </Text>
 
       {action ? (
         <Button label={action.label} onPress={action.onPress} className="mt-4 w-full" />

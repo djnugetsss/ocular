@@ -23,6 +23,16 @@ jest.mock('ocular-vision', () => ({
   OcularVisionView: 'OcularVisionView',
 }));
 
+// RevenueCat's native SDK is device-only. Mocked to absent by default — the
+// same state as Expo Go or web — so `isPurchasesAvailable()` is false and the
+// entitlement layer exercises its offline/fallback paths. The mock is
+// `virtual` because the package is a native dependency that need not be
+// installed for the JS suite to run. Tests that need a present store mock
+// `@/features/subscription/revenue-cat` directly.
+jest.mock('react-native-purchases', () => ({ __esModule: true, default: null }), {
+  virtual: true,
+});
+
 // Supabase reads validated env at import time; tests should not depend on a
 // developer's local .env.
 process.env.EXPO_PUBLIC_SUPABASE_URL ??= 'https://test.supabase.co';

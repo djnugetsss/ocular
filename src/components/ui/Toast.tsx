@@ -68,10 +68,7 @@ export function Toast({ message, onHide, className }: ToastProps) {
       });
     }, ENTER_MS + HOLD_MS);
 
-    const hideTimer = setTimeout(
-      () => onHideRef.current(),
-      ENTER_MS + HOLD_MS + EXIT_MS + 50
-    );
+    const hideTimer = setTimeout(() => onHideRef.current(), ENTER_MS + HOLD_MS + EXIT_MS + 50);
 
     return () => {
       clearTimeout(exitTimer);
@@ -87,12 +84,19 @@ export function Toast({ message, onHide, className }: ToastProps) {
   if (!message) return null;
 
   return (
-    <View pointerEvents="none" className={cn('absolute inset-x-4 bottom-4 items-center', className)}>
+    <View
+      pointerEvents="none"
+      className={cn('absolute inset-x-4 bottom-4 items-center', className)}
+    >
       <Animated.View
         style={animatedStyle}
         className="max-w-full rounded-full border border-hairline bg-canvas-overlay px-5 py-3"
       >
-        <Text accessibilityLiveRegion="polite" className="text-center text-sm text-ink">
+        <Text
+          accessibilityLiveRegion="polite"
+          maxFontSizeMultiplier={2}
+          className="text-center text-sm text-ink"
+        >
           {message}
         </Text>
       </Animated.View>
