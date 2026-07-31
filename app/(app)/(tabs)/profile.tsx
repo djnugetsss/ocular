@@ -28,6 +28,7 @@ import {
 } from '@/features/sessions/session-repository';
 import { PlanSettings } from '@/features/subscription/components/PlanSettings';
 import { useCameraPermission } from '@/features/vision/use-camera-permission';
+import { haptics } from '@/lib/haptics';
 import { LEGAL_URLS, openLegalPage } from '@/lib/legal';
 import { colors } from '@/theme/tokens';
 
@@ -480,6 +481,10 @@ function DeleteAllFlow({
     setError(null);
     try {
       await deleteAllSessions(userId);
+      // §6 "destructive commit", on the server's confirmation rather than the
+      // tap: this deletion is not optimistic, and acknowledging it before it
+      // landed would be feeling something that had not happened.
+      haptics.destructiveCommit();
       onDone('Your check-in history has been deleted.');
     } catch {
       setError("Couldn't delete your history — check your connection and try again.");
@@ -560,6 +565,9 @@ function DeleteAccountFlow({ email, onCancel }: { email: string | null; onCancel
     setError(null);
     try {
       await deleteAccount();
+      // Fired before the sign-out cascade, because once the gate takes over
+      // this component unmounts and the moment would pass unacknowledged.
+      haptics.destructiveCommit();
       // The account is gone; the local token now refers to nobody. Sign-out
       // may legitimately fail against a deleted user, and treating that as an
       // error would strand the user on a screen for an account that no longer

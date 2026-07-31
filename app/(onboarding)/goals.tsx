@@ -15,6 +15,7 @@ import {
 } from '@/features/onboarding/steps';
 import { useRecordOnboardingStep } from '@/features/onboarding/use-onboarding-step';
 import { useProfileStore } from '@/features/profile/profile-store';
+import { haptics } from '@/lib/haptics';
 import type { ProfileGoal } from '@/lib/supabase/database.types';
 
 /** After this many failures, offer to proceed without a confirmed write. */
@@ -46,6 +47,12 @@ export default function GoalsScreen() {
     setError(null);
     try {
       await save(completion);
+      // §6 "onboarding complete": felt on the tap rather than on arrival in
+      // the tabs, so the confirmation belongs to the finger that caused it —
+      // the root gate's redirect is a frame or two behind. Placed after the
+      // await, because a Success firing before the write could confirm a
+      // failure.
+      haptics.success();
       // No explicit navigation: writing `onboarded_at` flips the root gate,
       // which redirects to the tabs. Pushing here as well would race it.
     } catch (cause) {

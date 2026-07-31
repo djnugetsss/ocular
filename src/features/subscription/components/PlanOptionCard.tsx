@@ -2,6 +2,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { Icon } from '@/components/ui/Icon';
 import { cn } from '@/lib/cn';
+import { haptics } from '@/lib/haptics';
 import { colors } from '@/theme/tokens';
 
 interface PlanOptionCardProps {
@@ -35,14 +36,20 @@ export function PlanOptionCard({
     <Pressable
       accessibilityRole="radio"
       accessibilityState={{ selected: isSelected, checked: isSelected }}
-      accessibilityLabel={[
-        `${name}, ${priceLabel} per ${period}`,
-        badge,
-        isSelected ? 'selected' : null,
-      ]
+      // No "selected" in the label: `accessibilityState.selected` above already
+      // makes VoiceOver say it, and spelling it out here produced "…, selected,
+      // selected" on the preselected annual plan.
+      accessibilityLabel={[`${name}, ${priceLabel} per ${period}`, badge]
         .filter(Boolean)
         .join(', ')}
-      onPress={onPress}
+      onPress={() => {
+        // The same discrete-choice tick the segmented control gives, for the
+        // sheet's most consequential choice. Silent when re-tapping the plan
+        // that is already active, matching every native picker.
+        if (isSelected) return;
+        haptics.selectionChanged();
+        onPress();
+      }}
       className={cn(
         'flex-1 gap-1 rounded-card border p-4',
         isSelected

@@ -1,7 +1,9 @@
-import { Pressable, Text, View } from 'react-native';
+import { useEffect } from 'react';
+import { AccessibilityInfo, Pressable, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/cn';
+import { haptics } from '@/lib/haptics';
 
 interface ErrorStateProps {
   title?: string;
@@ -28,6 +30,15 @@ export function ErrorState({
   isRetrying = false,
   className,
 }: ErrorStateProps) {
+  // §6 assigns the Error notification to full-screen failures only, and
+  // `accessibilityLiveRegion` below is Android-only — so on iOS this screen
+  // arrived both silent and unfelt. Keyed on the message so a retry that fails
+  // *differently* is announced again, while a re-render is not.
+  useEffect(() => {
+    haptics.errorAppeared();
+    AccessibilityInfo.announceForAccessibility(`${title}. ${message}`);
+  }, [title, message]);
+
   return (
     <View className={cn('flex-1 items-center justify-center gap-3 px-8', className)}>
       <Text maxFontSizeMultiplier={1.4} className="text-center text-title2 font-semibold text-ink">
@@ -69,6 +80,13 @@ interface InlineErrorProps {
  * nothing is broken, the data is just not current.
  */
 export function InlineError({ message, onRetry, className }: InlineErrorProps) {
+  // Spoken, but deliberately not felt: §6 reserves the Error haptic for
+  // full-screen failures, because buzzing for a banner that sits beside data
+  // the user can still read makes a recoverable hiccup feel like a fault.
+  useEffect(() => {
+    AccessibilityInfo.announceForAccessibility(message);
+  }, [message]);
+
   return (
     <View
       accessibilityLiveRegion="polite"

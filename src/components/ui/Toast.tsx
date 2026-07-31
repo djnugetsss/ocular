@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Text, View } from 'react-native';
+import { AccessibilityInfo, Text, View } from 'react-native';
 import Animated, {
   Easing,
   ReduceMotion,
@@ -9,6 +9,8 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { cn } from '@/lib/cn';
+
+import { ENTER_MS, EXIT_MS, holdFor } from './toast-timing';
 
 interface ToastProps {
   /**
@@ -22,11 +24,6 @@ interface ToastProps {
   onHide: () => void;
   className?: string;
 }
-
-/** 250 ms in, 3 s hold, 200 ms out (DESIGN_REVIEW.md §6 motion table). */
-const ENTER_MS = 250;
-const HOLD_MS = 3000;
-const EXIT_MS = 200;
 
 /**
  * The third notice tier (DESIGN_REVIEW.md §4): `ErrorState` for a screen with
@@ -52,11 +49,21 @@ export function Toast({ message, onHide, className }: ToastProps) {
   useEffect(() => {
     if (!message) return;
 
+    // `accessibilityLiveRegion` is Android-only, so on this iOS app the notice
+    // was rendered silently: a VoiceOver user got no indication that a scan had
+    // been rejected as too short. `announceForAccessibility` is the iOS
+    // equivalent and speaks without moving focus, which matters here — the
+    // toast is `pointerEvents="none"` and deliberately not focusable, so
+    // stealing focus to it would strand the cursor on a view about to unmount.
+    AccessibilityInfo.announceForAccessibility(message);
+
     progress.value = withTiming(1, {
       duration: ENTER_MS,
       easing: Easing.out(Easing.ease),
       reduceMotion: ReduceMotion.System,
     });
+
+    const holdMs = holdFor(message);
 
     // The hold is a JS timer rather than a worklet chain so the whole cycle
     // survives Reduce Motion (which snaps the tweens but not the dwell time).
@@ -66,9 +73,9 @@ export function Toast({ message, onHide, className }: ToastProps) {
         easing: Easing.in(Easing.ease),
         reduceMotion: ReduceMotion.System,
       });
-    }, ENTER_MS + HOLD_MS);
+    }, ENTER_MS + holdMs);
 
-    const hideTimer = setTimeout(() => onHideRef.current(), ENTER_MS + HOLD_MS + EXIT_MS + 50);
+    const hideTimer = setTimeout(() => onHideRef.current(), ENTER_MS + holdMs + EXIT_MS + 50);
 
     return () => {
       clearTimeout(exitTimer);
@@ -93,6 +100,8 @@ export function Toast({ message, onHide, className }: ToastProps) {
         className="max-w-full rounded-full border border-hairline bg-canvas-overlay px-5 py-3"
       >
         <Text
+          // Kept for Android parity; the spoken announcement on iOS is made
+          // imperatively above, because this prop does nothing on that platform.
           accessibilityLiveRegion="polite"
           maxFontSizeMultiplier={2}
           className="text-center text-sm text-ink"

@@ -34,6 +34,7 @@ import { StatusPill } from '@/features/vision/components/StatusPill';
 import { CoachingMonitor, type CoachingHint } from '@/features/vision/scan-coaching';
 import { useCameraPermission } from '@/features/vision/use-camera-permission';
 import { useFaceTracking } from '@/features/vision/use-face-tracking';
+import { haptics } from '@/lib/haptics';
 
 /**
  * The scan ritual (DESIGN_REVIEW.md §3 state machine).
@@ -142,6 +143,13 @@ export default function ScanScreen() {
   const completingRef = useRef(false);
   const coachingMonitorRef = useRef(new CoachingMonitor());
 
+  // The lock-on haptic is the one §6 moment driven by a frame event, which
+  // arrives ~15×/s. A ref latch (reset per session in `handleBegin`) makes it
+  // fire exactly once at the calibrating → locked transition. A state-derived
+  // effect would refire whenever `isActive` flipped with calibration still
+  // true — i.e. buzz again on the way *out* of a session.
+  const lockHapticFiredRef = useRef(false);
+
   // Sticky calibration memory. `hasCalibrated` outlives the hook's per-frame
   // `isCalibrated` — a lost face reports uncalibrated, but this session has
   // already tracked, which changes both the guide treatment and the searching
@@ -213,6 +221,9 @@ export default function ScanScreen() {
             // full opacity because we are staying on this screen.
             setIsPreviewFading(false);
             if (shouldNavigate) {
+              // Light, matching the toast: nothing failed, the attempt was
+              // simply too short to count.
+              haptics.scanEndedEarly();
               setToast(
                 endedBy === 'error'
                   ? 'This check-in ended unexpectedly.'
@@ -225,6 +236,11 @@ export default function ScanScreen() {
           // silent blur-stop path, where nothing else would notice it.
           recordCheckIn();
           if (!shouldNavigate) return;
+          // The measurement landed. Fired here rather than on the auto-complete
+          // tick so it confirms the *save*, not merely the clock running out —
+          // and so an "End early" that still produced a session is acknowledged
+          // identically. State 15's silent blur-stop returns above, unfelt.
+          haptics.success();
           setResultsHandoff({ key: saved.id, summary, session: saved });
           setPendingResultId(saved.id);
         } catch {
@@ -297,6 +313,10 @@ export default function ScanScreen() {
     setChosenSeconds(targetSeconds);
     setPendingResultId(null);
     navigatedResultRef.current = null;
+    lockHapticFiredRef.current = false;
+    // §6 "scan: begin" — felt against the tap that opens the session, before
+    // the intro overlay takes over the narration.
+    haptics.scanBegan();
     start();
   }, [start, targetSeconds, checkInGate.isAllowed]);
 
@@ -351,6 +371,10 @@ export default function ScanScreen() {
   // An interruption that outlives its welcome ends the session (state 11).
   useEffect(() => {
     if (status !== 'interrupted') return;
+    // §6: one warning per interruption, not a repeat. This effect is keyed on
+    // `status`, so it runs on entry into `interrupted` and not again until the
+    // state has been left and re-entered.
+    haptics.interrupted();
     const enteredAtMs = Date.now();
     const timer = setTimeout(() => {
       void completeSessionRef.current({ endedBy: 'interruption' });
@@ -394,6 +418,13 @@ export default function ScanScreen() {
 
       // Sticky calibration memory; React bails on the ~15/s identical writes.
       if (observed.hasFace && observed.blink?.isCalibrated) {
+        // §6 "calibrated → locked": the "it has me" moment. Latched outside
+        // the state updater so React's double-invocation in development
+        // cannot produce two taps for one lock.
+        if (!lockHapticFiredRef.current) {
+          lockHapticFiredRef.current = true;
+          haptics.trackingLocked();
+        }
         setHasCalibrated(true);
       }
 

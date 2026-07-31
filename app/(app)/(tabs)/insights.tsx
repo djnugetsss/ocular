@@ -494,7 +494,10 @@ function InsightsSkeleton() {
           Insights
         </Text>
 
-        <View accessibilityLabel="Loading your history" accessibilityLiveRegion="polite">
+        {/* `accessible` promotes this to an iOS accessibility element; without
+            it the label is dropped and the hidden skeletons leave VoiceOver
+            with nothing to find while the range loads. */}
+        <View accessible accessibilityLabel="Loading your history" accessibilityLiveRegion="polite">
           <Skeleton className="mt-4 h-11 rounded-card" />
           <Skeleton className="mt-5 h-[212px]" />
           <Skeleton className="mt-3 h-[212px]" />

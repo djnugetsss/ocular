@@ -19,6 +19,7 @@ import {
 import { STORE_ERROR, presentManageSubscriptions } from '@/features/subscription/revenue-cat';
 import { useSubscription } from '@/features/subscription/subscription-provider';
 import { useProducts } from '@/features/subscription/use-products';
+import { haptics } from '@/lib/haptics';
 import { LEGAL_URLS, openLegalPage } from '@/lib/legal';
 import { colors } from '@/theme/tokens';
 
@@ -78,6 +79,13 @@ export default function PremiumScreen() {
       const outcome = await purchase(selectedTier);
       switch (outcome.status) {
         case 'granted':
+          // The one unambiguous success in the app that costs money; §6's
+          // Success notification is exactly the confirmation it warrants. Note
+          // what stays silent below: a cancelled purchase (the user chose
+          // nothing, and buzzing would nag) and the `failed`/`pending` toasts,
+          // which sit in the inline notice tier §6 explicitly excludes from
+          // the Error haptic.
+          haptics.success();
           // Celebrate briefly, then get out of the way — the reward for
           // upgrading is the app with its limits gone, not this screen.
           setDidPurchase(true);
@@ -113,6 +121,10 @@ export default function PremiumScreen() {
       const outcome = await restore();
       switch (outcome.status) {
         case 'restored':
+          // Access was granted, so it earns the same confirmation a fresh
+          // purchase does — a restore that felt different from a purchase
+          // would imply it had worked less well.
+          haptics.success();
           // The provider adopts the tier, so the sheet flips to its owned
           // state on its own; the toast just acknowledges the tap.
           setToast('Your subscription is back. Welcome to Pro.');

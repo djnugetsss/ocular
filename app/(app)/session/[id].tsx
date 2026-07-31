@@ -36,6 +36,7 @@ import { useSessionResultsStore } from '@/features/sessions/session-results-stor
 import { PostScanPremiumMoment } from '@/features/subscription/components/PostScanPremiumMoment';
 import { useEntitlements } from '@/features/subscription/subscription-provider';
 import { cn } from '@/lib/cn';
+import { haptics } from '@/lib/haptics';
 import { blinkRateTone, colors, postureTone, type Tone } from '@/theme/tokens';
 import type { Session } from '@/lib/supabase/database.types';
 
@@ -241,6 +242,10 @@ export default function SessionResultsScreen() {
     setDeleteError(null);
     try {
       await deleteSession(savedId);
+      // §6 "destructive commit": fired on the server's confirmation, not on
+      // the tap. The delete is deliberately non-optimistic, so acknowledging
+      // it earlier would be feeling something that had not happened yet.
+      haptics.destructiveCommit();
       // Today and Insights refetch on focus, so the row disappears without
       // any cross-screen bookkeeping here.
       if (memory) clearHandoff();
@@ -564,6 +569,9 @@ function ResultsSkeleton() {
   return (
     <Screen edges={['top', 'bottom']}>
       <View
+        // See the note on Today's loading block: `accessible` is what makes
+        // the label reachable on iOS, and the skeletons below are all hidden.
+        accessible
         accessibilityLabel="Loading session"
         accessibilityLiveRegion="polite"
         className="px-4 pt-2"

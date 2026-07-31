@@ -10,10 +10,17 @@ import * as WebBrowser from 'expo-web-browser';
  *
  * NOTE: both pages must be live and reachable *before* submission — a 404
  * here is a rejection, and it is the kind that costs a full review cycle.
+ * Both were verified reachable (HTTP 200) on 2026-07-31.
+ *
+ * The `.html` extensions are load-bearing: the site is static, and the
+ * extensionless paths these used to point at do not resolve.
+ *
+ * The privacy policy URL must additionally be entered in App Store Connect,
+ * which reads its own metadata field rather than anything in this file.
  */
 export const LEGAL_URLS = {
-  privacyPolicy: 'https://ocular.app/privacy',
-  terms: 'https://ocular.app/terms',
+  privacyPolicy: 'https://ocular-website-beta.vercel.app/privacy.html',
+  terms: 'https://ocular-website-beta.vercel.app/terms.html',
 } as const;
 
 /**

@@ -1,6 +1,7 @@
 import { Pressable, Text, View } from 'react-native';
 
 import { cn } from '@/lib/cn';
+import { haptics } from '@/lib/haptics';
 
 export interface SegmentOption<T extends string | number> {
   value: T;
@@ -49,13 +50,23 @@ export function SegmentedControl<T extends string | number>({
             accessibilityRole="tab"
             accessibilityState={{ selected: isSelected }}
             accessibilityLabel={option.accessibilityLabel ?? option.label}
-            onPress={() => onChange(option.value)}
+            onPress={() => {
+              // Re-tapping the active segment is a no-op, matching every
+              // native iOS picker: no tick, and — since callers persist this
+              // choice — no redundant write for a value that did not change.
+              if (isSelected) return;
+              haptics.selectionChanged();
+              onChange(option.value);
+            }}
             className={cn(
               // 14, not the 18 pt card radius: this sits inside a `rounded-card`
               // track with 4 pt of padding, and concentric corners need the
               // inner radius reduced by exactly that inset or the curves read
               // as mismatched. A deliberate exception to the 18/24/999 set.
-              'flex-1 items-center justify-center rounded-[14px] py-2.5',
+              // `min-h-11` holds the 44 pt HIG touch target: the padding alone
+              // left the segment ~38 pt, and it collapses further as the label
+              // shrinks at small Dynamic Type sizes.
+              'min-h-11 flex-1 items-center justify-center rounded-[14px] py-2.5',
               isSelected ? 'bg-accent' : 'active:bg-canvas-overlay'
             )}
           >

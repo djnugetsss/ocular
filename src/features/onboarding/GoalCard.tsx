@@ -2,6 +2,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { Icon } from '@/components/ui/Icon';
 import { cn } from '@/lib/cn';
+import { haptics } from '@/lib/haptics';
 import { colors } from '@/theme/tokens';
 import type { GoalOption } from '@/features/onboarding/steps';
 
@@ -24,7 +25,14 @@ export function GoalCard({ option, isSelected, onPress }: GoalCardProps) {
       accessibilityRole="radio"
       accessibilityState={{ selected: isSelected, checked: isSelected }}
       accessibilityLabel={`${option.label}. ${option.description}`}
-      onPress={onPress}
+      onPress={() => {
+        // Every discrete choice in the app ticks identically — segmented
+        // control, plan radio, goal tile. Consistency is the point: feedback
+        // that varies by screen reads as an inconsistency, not as nuance.
+        if (isSelected) return;
+        haptics.selectionChanged();
+        onPress();
+      }}
       className={cn(
         'flex-1 gap-2 rounded-card border p-4',
         isSelected

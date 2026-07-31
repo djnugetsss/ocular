@@ -285,6 +285,12 @@ function DashboardSkeleton() {
         <Skeleton className="mt-1.5 h-3.5 w-40 rounded-md" />
 
         <View
+          // `accessible` is what makes this an accessibility element on iOS.
+          // Without it the label is ignored, and because every `Skeleton`
+          // hides itself from assistive tech, VoiceOver found nothing at all
+          // on this screen while it loaded — nothing announced, nothing to
+          // focus. (`accessibilityLiveRegion` is Android-only.)
+          accessible
           accessibilityLabel="Loading your day"
           accessibilityLiveRegion="polite"
           className="mt-6 items-center"
