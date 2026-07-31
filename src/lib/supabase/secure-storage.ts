@@ -8,11 +8,14 @@ import { Platform } from 'react-native';
  * unencrypted SQLite file. A stolen or jailbroken device yields a working
  * refresh token from that file, so sessions go in the Keychain instead.
  *
- * DEFERRED: because of this, `@react-native-async-storage/async-storage` is a
- * declared dependency that nothing imports. Removing it is almost certainly
- * correct, but it is an autolinked native module — the change is only provable
- * by a clean `pod install` and device build, so it is left in place rather
- * than removed blind. See the launch-blocker list.
+ * NOTE: `@react-native-async-storage/async-storage` is still a required
+ * dependency — it is *not* dead weight and must not be removed. Auth sessions
+ * do not use it (that is the whole point of this file), but the subscription
+ * layer does: `entitlement-cache.ts` and `entitlement-service.ts` both store
+ * through it. That split is deliberate. A refresh token is credential material
+ * and belongs in the Keychain; a cached entitlement tier is a non-secret hint
+ * that the next online resolution overwrites, and putting it in the Keychain
+ * would buy nothing while competing for the same 2048-byte ceiling.
  *
  * ## The 2048-byte problem
  * `SecureStore` refuses values larger than 2048 bytes, and a Supabase session

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import Animated, { FadeIn, FadeInDown, ReduceMotion } from 'react-native-reanimated';
@@ -72,6 +72,18 @@ export default function PremiumScreen() {
     else router.navigate('/(app)/(tabs)');
   }, [router]);
 
+  // The post-purchase celebration dismisses itself on a timer. Held in a ref
+  // and cleared on unmount because this is a swipe-dismissable card modal: a
+  // user who swipes it away inside the celebration window would otherwise have
+  // the timer fire against an unmounted screen and pop a *second* route,
+  // throwing them out of whatever tab they upgraded from.
+  const celebrationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (celebrationTimerRef.current) clearTimeout(celebrationTimerRef.current);
+    };
+  }, []);
+
   const handlePurchase = useCallback(async () => {
     if (isPurchasing) return;
     setIsPurchasing(true);
@@ -89,7 +101,7 @@ export default function PremiumScreen() {
           // Celebrate briefly, then get out of the way — the reward for
           // upgrading is the app with its limits gone, not this screen.
           setDidPurchase(true);
-          setTimeout(close, 1600);
+          celebrationTimerRef.current = setTimeout(close, 1600);
           return;
         case 'cancelled':
           // The user chose not to buy. Nothing changed, and saying anything

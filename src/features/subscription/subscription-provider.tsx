@@ -134,9 +134,16 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const subscription = addEntitlementListener((change) => {
       void (async () => {
-        const nextTier = await adoptEntitlementChange(userIdRef.current, change);
+        // Pinned before the await: `adoptEntitlementChange` writes the cache
+        // over the network, and a sign-out or account switch can land while it
+        // is in flight.
+        const adoptingFor = userIdRef.current;
+        const nextTier = await adoptEntitlementChange(adoptingFor, change);
         // Adopt only for the account still signed in — an update racing an
-        // account switch must not repaint the new user's plan.
+        // account switch must not repaint the new user's plan. Without this
+        // check the previous account's tier is installed over the current
+        // one, which on a shared device shows the new user someone else's Pro.
+        if (userIdRef.current !== adoptingFor) return;
         requestRef.current += 1;
         setTier(nextTier);
         setOrigin('store');

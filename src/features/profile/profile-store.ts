@@ -65,6 +65,18 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  */
 let writeQueue: Promise<unknown> = Promise.resolve();
 
+/**
+ * Monotonic load id, so a slow read cannot install itself over a newer one.
+ *
+ * `load` retries across several hundred milliseconds and the routing gate keys
+ * off the profile it produces. Sign out and back in as someone else inside that
+ * window and the first user's row would otherwise arrive last and win — showing
+ * the new user the previous account's name, goal, and `onboarded_at`. Module
+ * scope rather than a ref because the store is not a component; it mirrors the
+ * `requestRef` guard the subscription provider and check-in gate already use.
+ */
+let loadRequestId = 0;
+
 function enqueueWrite<T>(work: () => Promise<T>): Promise<T> {
   const result = writeQueue.then(work, work);
   writeQueue = result.catch(() => undefined);
@@ -77,11 +89,18 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   error: null,
 
   load: async (userId) => {
+    const requestId = ++loadRequestId;
+    // Superseded at any await point below — including by `clear()` on sign-out,
+    // which bumps the id so a read already in flight cannot resurrect a signed
+    // -out user's profile.
+    const isCurrent = () => requestId === loadRequestId;
+
     set({ status: 'loading', error: null });
 
     for (let attempt = 0; attempt <= MISSING_ROW_RETRIES; attempt += 1) {
       try {
         const profile = await getProfile(userId);
+        if (!isCurrent()) return;
 
         if (profile) {
           set({ profile, status: 'ready', error: null });
@@ -92,6 +111,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         // attempts, in which case this is a real problem worth surfacing.
         if (attempt < MISSING_ROW_RETRIES) {
           await wait(RETRY_BASE_DELAY_MS * 2 ** attempt);
+          if (!isCurrent()) return;
           continue;
         }
 
@@ -102,6 +122,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         });
         return;
       } catch (cause) {
+        if (!isCurrent()) return;
         // A thrown error is a transport or permission failure, not a missing
         // row; retrying will not help, so fail immediately with the message.
         set({
@@ -139,5 +160,10 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     });
   },
 
-  clear: () => set({ profile: null, status: 'idle', error: null }),
+  // Bumping the load id is the point: sign-out must also cancel a read still
+  // in flight, or it lands after the clear and re-populates the store.
+  clear: () => {
+    loadRequestId += 1;
+    set({ profile: null, status: 'idle', error: null });
+  },
 }));

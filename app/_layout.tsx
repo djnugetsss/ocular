@@ -15,7 +15,13 @@ import { colors } from '@/theme/tokens';
 
 // Held until both the persisted session and the profile resolve, so the app
 // never flashes the wrong destination on cold start.
-void SplashScreen.preventAutoHideAsync();
+//
+// Both splash calls swallow their rejection. They reject benignly when the
+// splash is already hidden or was never shown (a Fast Refresh, a re-entered
+// module), and an unhandled rejection at module scope is reported as a red-box
+// error in development and a stray log line in production — noise for a call
+// whose failure changes nothing.
+SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
 export default function RootLayout() {
   const initialize = useAuthStore((state) => state.initialize);
@@ -55,7 +61,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (!isRoutingReady) return;
-    void SplashScreen.hideAsync();
+    SplashScreen.hideAsync().catch(() => undefined);
   }, [isRoutingReady]);
 
   useEffect(() => {
