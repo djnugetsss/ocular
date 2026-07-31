@@ -28,6 +28,7 @@ export default function RootLayout() {
   const isInitializing = useAuthStore((state) => state.isInitializing);
   const session = useAuthStore((state) => state.session);
   const userId = useAuthStore((state) => state.user?.id);
+  const isRecovering = useAuthStore((state) => state.isRecovering);
 
   const loadProfile = useProfileStore((state) => state.load);
   const clearProfile = useProfileStore((state) => state.clear);
@@ -66,6 +67,11 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (!isRoutingReady) return;
+    // A password-recovery link signs the user in so they can authorize the
+    // change. Until the new password is written, "signed in means go to the
+    // app" would replace the reset form out from under them and spend the
+    // single-use link for nothing. This is the one rule recovery suspends.
+    if (isRecovering) return;
 
     const group = segments[0];
     const inAuthGroup = group === '(auth)';
@@ -93,7 +99,16 @@ export default function RootLayout() {
     if (inAuthGroup || inOnboardingGroup) {
       router.replace('/(app)/(tabs)');
     }
-  }, [isRoutingReady, session, profileStatus, onboardedAt, onboardingStep, segments, router]);
+  }, [
+    isRoutingReady,
+    isRecovering,
+    session,
+    profileStatus,
+    onboardedAt,
+    onboardingStep,
+    segments,
+    router,
+  ]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

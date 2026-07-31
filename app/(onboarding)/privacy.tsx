@@ -45,10 +45,7 @@ export default function PrivacyScreen() {
             hitSlop={8}
             className="min-h-11 items-center justify-center"
           >
-            <Text
-              maxFontSizeMultiplier={2}
-              className="text-xs text-ink-faint underline"
-            >
+            <Text maxFontSizeMultiplier={2} className="text-xs text-ink-faint underline">
               Read the full Privacy Policy
             </Text>
           </Pressable>

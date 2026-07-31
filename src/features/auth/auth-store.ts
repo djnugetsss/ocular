@@ -1,7 +1,40 @@
+import * as Linking from 'expo-linking';
 import type { Session, User } from '@supabase/supabase-js';
 import { create } from 'zustand';
 
 import { supabase } from '@/lib/supabase/client';
+
+/**
+ * Where Supabase's email links come back to.
+ *
+ * Built from the app's own scheme (`ocular://` in production, `ocular-dev://`
+ * and `ocular-preview://` in the other variants — see `app.config.ts`), so a
+ * side-by-side install returns to the build that sent the mail rather than
+ * whichever one iOS happens to pick.
+ *
+ * **Every variant's URL must be listed in Supabase → Authentication → URL
+ * Configuration → Redirect URLs.** An unlisted redirect is silently replaced
+ * with the project's Site URL, which is how "the link opens a browser and
+ * never reaches the app" happens.
+ *
+ * `/callback` is `app/(auth)/callback.tsx` — route groups do not appear in the
+ * URL, so the path has no `(auth)` segment in it.
+ *
+ * Computed per call rather than once at module scope: `createURL` *throws* when
+ * the expo-constants manifest is not resolvable, and at module scope that turns
+ * a configuration problem into an unrecoverable crash the moment anything
+ * imports this store — which, via the routing gate, is app launch. Called from
+ * inside the two auth requests instead, it can only fail where there is already
+ * a `try`/`catch` and a user to tell.
+ *
+ * `flow` is the app's own marker rather than a Supabase-forwarded `type`: the
+ * callback has to know whether to hand the user to the app or to the "set a new
+ * password" screen, and getting that wrong strands them signed in with the
+ * password they could not remember.
+ */
+export function authRedirectUrl(flow?: 'recovery'): string {
+  return Linking.createURL('/callback', flow ? { queryParams: { flow } } : undefined);
+}
 
 /**
  * Authentication state.
@@ -24,12 +57,28 @@ interface AuthState {
   isInitializing: boolean;
   /** True while a sign-in/up/out request is in flight. */
   isSubmitting: boolean;
+  /**
+   * True between opening a password-recovery link and setting the new password.
+   *
+   * A recovery link signs the user *in* — that is how Supabase authorizes the
+   * password change. The routing gate would normally see that session and send
+   * them straight into the app, replacing the reset screen out from under them
+   * and spending the single-use link for nothing. This flag suspends that one
+   * rule, and nothing else.
+   */
+  isRecovering: boolean;
 
   initialize: () => () => void;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, displayName: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  /** Marks a recovery session as in progress. Called by the callback route. */
+  beginRecovery: () => void;
+  /** Sets the new password and ends the recovery hold. */
+  completeRecovery: (password: string) => Promise<void>;
+  /** Abandons a recovery without changing the password; signs the user out. */
+  cancelRecovery: () => Promise<void>;
 }
 
 /**
@@ -69,11 +118,12 @@ export function describeAuthError(error: unknown): string {
   return error.message;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   session: null,
   user: null,
   isInitializing: true,
   isSubmitting: false,
+  isRecovering: false,
 
   /**
    * Subscribes to auth changes and resolves the persisted session.
@@ -84,7 +134,15 @@ export const useAuthStore = create<AuthState>((set) => ({
     // Registered before `getSession()` so that a refresh completing mid-call
     // cannot slip through between the read and the subscription.
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      set({ session, user: session?.user ?? null, isInitializing: false });
+      set({
+        session,
+        user: session?.user ?? null,
+        isInitializing: false,
+        // Losing the session ends any recovery hold with it — otherwise a
+        // sign-out mid-reset would leave the gate suspended and strand the app
+        // on a screen it can no longer authorize.
+        ...(session ? null : { isRecovering: false }),
+      });
     });
 
     void supabase.auth
@@ -124,6 +182,10 @@ export const useAuthStore = create<AuthState>((set) => ({
         options: {
           // Read by the handle_new_user() trigger to seed the profile row.
           data: { display_name: displayName.trim() },
+          // Without this the confirmation link resolves to the project's Site
+          // URL — a web address this app does not serve — and the account can
+          // never be confirmed from a phone.
+          emailRedirectTo: authRedirectUrl(),
         },
       });
       if (error) throw error;
@@ -145,10 +207,43 @@ export const useAuthStore = create<AuthState>((set) => ({
   resetPassword: async (email) => {
     set({ isSubmitting: true });
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: authRedirectUrl('recovery'),
+      });
       if (error) throw error;
     } finally {
       set({ isSubmitting: false });
+    }
+  },
+
+  beginRecovery: () => set({ isRecovering: true }),
+
+  completeRecovery: async (password) => {
+    set({ isSubmitting: true });
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) throw error;
+      // Released only after the write succeeds. Clearing it first would let
+      // the gate navigate away while the request was still in flight, hiding
+      // a failure the user needs to see and act on.
+      set({ isRecovering: false });
+    } finally {
+      set({ isSubmitting: false });
+    }
+  },
+
+  cancelRecovery: async () => {
+    // Sign out rather than simply dropping the flag: the recovery session was
+    // granted to authorize one password change, and letting it fall through
+    // into the app would turn a password-reset email into a way to enter an
+    // account without knowing its password.
+    set({ isRecovering: false });
+    if (!get().session) return;
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // The gate keys off the session, and a failed sign-out leaves it intact;
+      // the listener corrects the store either way. Nothing to surface here.
     }
   },
 }));

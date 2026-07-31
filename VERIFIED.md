@@ -5,7 +5,7 @@
 **Scope:** Verify every fix from the 2026-07-19 device-test round, run all available automated verification, fix regressions. No new features.
 
 A hard constraint shapes what "verified" means below: **the iOS Simulator has no
-camera**, so every camera-dependent behavior can only be *behaviorally* confirmed
+camera**, so every camera-dependent behavior can only be _behaviorally_ confirmed
 on a physical iPhone. For those items this pass verifies the code path, the unit
 tests around it, and that the Swift compiles — and explicitly flags the
 on-device retest still owed.
@@ -14,15 +14,15 @@ on-device retest still owed.
 
 ## 1. Feature verification
 
-| # | Feature | Verification method | Result |
-|---|---------|--------------------|--------|
-| 1 | Landmark mesh orientation | Code review + Swift compile | **PASS (code-level)** — device retest owed |
-| 2 | Blink counts persist across interruptions | Code review + unit tests | **PASS (code-level)** — device retest owed |
-| 3 | Session timer pauses during interruptions | Unit tests (6 dedicated cases) | **PASS** — device retest owed |
-| 4 | Head steadiness / posture drift scoring | Unit tests (5 dedicated cases) | **PASS** — device retest owed for "feels natural" |
-| 5 | Auth footer alignment | Code review | **PASS (code-level)** — visual confirm owed |
-| 6 | Onboarding end-to-end | Code review + routing/steps unit tests | **PASS (code-level)** |
-| 7 | Session saving | Code review + typecheck against DB types | **PASS (code-level)** |
+| #   | Feature                                   | Verification method                      | Result                                            |
+| --- | ----------------------------------------- | ---------------------------------------- | ------------------------------------------------- |
+| 1   | Landmark mesh orientation                 | Code review + Swift compile              | **PASS (code-level)** — device retest owed        |
+| 2   | Blink counts persist across interruptions | Code review + unit tests                 | **PASS (code-level)** — device retest owed        |
+| 3   | Session timer pauses during interruptions | Unit tests (6 dedicated cases)           | **PASS** — device retest owed                     |
+| 4   | Head steadiness / posture drift scoring   | Unit tests (5 dedicated cases)           | **PASS** — device retest owed for "feels natural" |
+| 5   | Auth footer alignment                     | Code review                              | **PASS (code-level)** — visual confirm owed       |
+| 6   | Onboarding end-to-end                     | Code review + routing/steps unit tests   | **PASS (code-level)**                             |
+| 7   | Session saving                            | Code review + typecheck against DB types | **PASS (code-level)**                             |
 
 ### Detail per feature
 
@@ -36,7 +36,7 @@ This is geometry that only eyes on a phone can finally confirm.
 
 **2. Blink persistence** — The Blinks tile reads `blinkCount` from the JS
 aggregator (`use-face-tracking.ts`), not the native per-frame count. The native
-detector *deliberately* resets on interruption end (`resetAnalysisState()` in
+detector _deliberately_ resets on interruption end (`resetAnalysisState()` in
 `FaceTrackingSession.sessionInterruptionEnded`) because metrics across a gap
 aren't continuous; the JS total survives that reset. `scan.tsx` renders
 `String(blinkCount)` with a comment pinning the reason.
@@ -45,7 +45,7 @@ aren't continuous; the JS total survives that reset. `scan.tsx` renders
 `AVCaptureSessionWasInterrupted` → native `interrupted` state →
 `handleSessionStateChange` calls `aggregator.pause()`; `running` resumes it.
 `SessionAggregator` handles idempotent pause, stray resume, and a session that
-*ends while still interrupted* (open pause counted to end time, summarize stays
+_ends while still interrupted_ (open pause counted to end time, summarize stays
 non-destructive). Blink rate is computed from measured time only. All covered by
 unit tests (`session-aggregator.test.ts`).
 
@@ -79,16 +79,16 @@ left running behind another tab).
 
 ## 2. Automated verification
 
-| Check | Command | Result |
-|-------|---------|--------|
-| TypeScript | `npm run typecheck` | **PASS** — no errors |
-| ESLint | `npm run lint` (`--max-warnings 0`) | **PASS** — no errors, no warnings |
-| Jest | `npx jest --ci` | **PASS** — 2 suites, 22/22 tests |
-| Expo Doctor | `npx expo-doctor` | **PASS** — 20/20 checks (was 18/20; see §3) |
-| CocoaPods | `pod install` | **PASS** — RNWorklets pinned 0.10.0 |
+| Check                      | Command                                                                      | Result                                                                                                                           |
+| -------------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| TypeScript                 | `npm run typecheck`                                                          | **PASS** — no errors                                                                                                             |
+| ESLint                     | `npm run lint` (`--max-warnings 0`)                                          | **PASS** — no errors, no warnings                                                                                                |
+| Jest                       | `npx jest --ci`                                                              | **PASS** — 2 suites, 22/22 tests                                                                                                 |
+| Expo Doctor                | `npx expo-doctor`                                                            | **PASS** — 20/20 checks (was 18/20; see §3)                                                                                      |
+| CocoaPods                  | `pod install`                                                                | **PASS** — RNWorklets pinned 0.10.0                                                                                              |
 | Native build (incl. Swift) | `xcodebuild -scheme OcularDev -destination 'generic/platform=iOS Simulator'` | **PASS** — `BUILD SUCCEEDED`, zero warnings from the `ocular-vision` Swift module (only stock Expo/Hermes script-phase warnings) |
 
-TypeScript, Jest, and Expo Doctor were re-run *after* the dependency fixes in §3
+TypeScript, Jest, and Expo Doctor were re-run _after_ the dependency fixes in §3
 and remained green.
 
 ---
@@ -100,7 +100,7 @@ fixed:
 
 1. **`react-native-worklets` was not a declared dependency.** Reanimated 4
    requires it as a peer; npm had auto-installed 0.10.2 transitively, so the app
-   worked *today*, but nothing pinned the version — a fresh `npm ci` after a
+   worked _today_, but nothing pinned the version — a fresh `npm ci` after a
    transitive bump could silently change native code. Now declared at `0.10.0`
    (the SDK 57-pinned version) and pods re-resolved to match (`RNWorklets 0.10.0`
    in Podfile.lock).
@@ -131,7 +131,7 @@ but not eyes-on-verified since commit a203592 landed):
 
 **Known, accepted trade-offs (not defects):**
 
-- Posture drift scoring cannot flag a user who *starts* slumped and stays there;
+- Posture drift scoring cannot flag a user who _starts_ slumped and stays there;
   it measures change within a session by design, and product copy must not claim
   more.
 - If the goals-screen "Continue anyway" background write never lands,
@@ -159,7 +159,7 @@ the rest.**
 - Native layer: **high on compile + review** — the orientation inverse provably
   matches the declared EXIF orientations, and the interruption chain is wired
   end-to-end. But coordinate-space geometry has been wrong while looking right
-  before; it is *proven* only by the mesh sitting on a real face.
+  before; it is _proven_ only by the mesh sitting on a real face.
 - Dependencies/tooling: **high** — 20/20 Doctor, versions now pinned, lockfile
   consistent.
 
