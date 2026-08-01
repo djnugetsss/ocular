@@ -1,12 +1,14 @@
 import '../global.css';
 
 import { useEffect } from 'react';
+import { Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments, type ErrorBoundaryProps } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 
+import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/features/auth/auth-store';
 import { useProfileStore } from '@/features/profile/profile-store';
 import { stepRoute } from '@/features/onboarding/steps';
@@ -22,6 +24,52 @@ import { colors } from '@/theme/tokens';
 // error in development and a stray log line in production — noise for a call
 // whose failure changes nothing.
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
+
+/**
+ * The app's last line of defence against a render-time throw.
+ *
+ * Expo Router wraps each route in a boundary and looks for an `ErrorBoundary`
+ * export on the nearest layout; exporting it *here* covers every route in the
+ * app, including the ones a user cannot navigate away from. Without it, release
+ * builds fall through to Expo Router's stock boundary, which is developer-facing
+ * (a stack trace on a red field) and, more importantly, offers no way back —
+ * a user who hits it is stuck until they force-quit, and even then a cold launch
+ * that lands on the same screen loops.
+ *
+ * `retry` re-renders the failed subtree, which clears the class of failure that
+ * comes from transient state (a malformed row, a null a component did not
+ * expect). The splash is hidden explicitly because a throw during the routing
+ * gate can happen while it is still up — the failure would otherwise be
+ * invisible behind a splash screen that never leaves.
+ */
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  useEffect(() => {
+    SplashScreen.hideAsync().catch(() => undefined);
+  }, []);
+
+  return (
+    <View className="flex-1 items-center justify-center gap-4 bg-canvas px-8">
+      <Text
+        accessibilityRole="header"
+        maxFontSizeMultiplier={1.4}
+        className="text-center text-title2 font-semibold text-ink"
+      >
+        Something went wrong
+      </Text>
+      <Text maxFontSizeMultiplier={2} className="text-center text-base leading-6 text-ink-muted">
+        Ocular hit an unexpected problem on this screen. Your check-ins are safe — they are stored
+        on your account, not on this screen.
+      </Text>
+      {/* The message, quietly. It is the only thing that makes a TestFlight
+          report actionable, and hiding it entirely would trade a user's mild
+          confusion for a bug nobody can reproduce. */}
+      <Text maxFontSizeMultiplier={2} className="text-center text-xs text-ink-faint">
+        {error.message}
+      </Text>
+      <Button label="Try again" onPress={() => void retry()} className="mt-2 w-full" />
+    </View>
+  );
+}
 
 export default function RootLayout() {
   const initialize = useAuthStore((state) => state.initialize);

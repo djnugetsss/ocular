@@ -1,6 +1,3 @@
 {
-  "platforms": ["apple"],
-  "apple": {
-    "modules": ["OcularStoreModule"]
-  }
+  "platforms": []
 }

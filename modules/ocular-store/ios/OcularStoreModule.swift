@@ -6,20 +6,31 @@ import UIKit
 /**
  Expo glue for StoreKit 2 — props, promises, and events, and nothing else.
 
- All of the actual StoreKit reasoning lives in `StoreKitBridge`; this file
- exists to move its results across the bridge and to own the one piece of
- state that must outlive any single call: the transaction observer.
+ RETIRED. RevenueCat (`react-native-purchases`) owns the entitlement path; see
+ `src/features/subscription/revenue-cat.ts`. This module is kept as reference
+ only and is unlinked from the build by `expo-module.config.json`, which now
+ declares no platforms.
 
- The observer is started in `OnCreate` rather than on demand from JavaScript.
- Apple requires an update listener to exist for the app's whole lifetime, and
- tying its lifetime to a JS subscription would mean a renewal arriving during
- a reload is simply lost until the next launch.
+ ## Why it had to stop running, not merely stop being called
+
+ The old `OnCreate` block started a lifetime `Transaction.updates` observer that
+ called `transaction.finish()` on every verified transaction. `Transaction.updates`
+ is a broadcast: RevenueCat's SDK observes it too, and it must post a transaction
+ to its backend before that transaction is finished. Two independent observers
+ racing to finish the same transaction is a known cause of a purchase that
+ completes at Apple but never grants the entitlement — the user is charged and
+ stays on Free, which is both a real harm and an App Review Guideline 3.1.1
+ rejection.
+
+ Being dead code in JavaScript was not protection: the module was autolinked, so
+ `OnCreate` ran at every launch regardless of whether anything imported it. The
+ observer is therefore removed here as well as unlinked, so re-linking this
+ module can never silently reintroduce the race.
  */
 public class OcularStoreModule: Module {
 
   /// Product ids this app sells, supplied by JS so the ids have one home.
   private var productIds: [String] = []
-  private var updatesTask: Task<Void, Never>?
 
   public func definition() -> ModuleDefinition {
     Name("OcularStore")
@@ -34,23 +45,8 @@ public class OcularStoreModule: Module {
       "isSimulator": Self.isSimulator
     ])
 
-    OnCreate { [weak self] in
-      guard let self else { return }
-      self.updatesTask = StoreKitBridge.observeTransactionUpdates(
-        productIds: { [weak self] in self?.productIds ?? [] },
-        onChange: { [weak self] snapshot, reason in
-          guard let self else { return }
-          var payload = OcularStorePayload.entitlement(snapshot)
-          payload["reason"] = reason
-          self.sendEvent("onEntitlementChange", payload)
-        }
-      )
-    }
-
-    OnDestroy { [weak self] in
-      self?.updatesTask?.cancel()
-      self?.updatesTask = nil
-    }
+    // Deliberately no OnCreate transaction observer. See the type comment: the
+    // app has exactly one transaction observer, and it belongs to RevenueCat.
 
     /// Registers the product ids. Idempotent; called once at startup.
     AsyncFunction("configure") { (productIds: [String], promise: Promise) in

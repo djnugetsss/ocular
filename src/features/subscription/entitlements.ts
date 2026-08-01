@@ -55,7 +55,17 @@ export interface Entitlements {
   hasFullInsights: boolean;
   /** Trend charts specifically — the sparklines and range lines on Insights. */
   hasTrendAnalytics: boolean;
-  /** Exporting the full session history as a file. */
+  /**
+   * Exporting the full session history.
+   *
+   * True on **every** plan, and deliberately so. Profile's "Export my data" has
+   * never been gated, and it should not be: the export is the user's own
+   * measurements, and a plan that could withhold them would make the free tier a
+   * place data goes in and cannot come out of. The flag stays on the record
+   * rather than being deleted so `feature-flags.ts` keeps one uniform way to ask
+   * about a capability — see the note in `premium-content.ts`, whose comparison
+   * table now agrees with this.
+   */
   hasExport: boolean;
   /**
    * Whether the plan *entitles* opt-in ambient measurement. Distinct from
@@ -74,7 +84,9 @@ const FREE: Entitlements = {
   visibleSessionLimit: FREE_VISIBLE_SESSION_LIMIT,
   hasFullInsights: false,
   hasTrendAnalytics: false,
-  hasExport: false,
+  // Not a paid capability — see the field's doc comment. Your data is yours on
+  // every plan, and the paywall says so.
+  hasExport: true,
   hasBackgroundTracking: false,
 };
 

@@ -26,7 +26,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ...config,
     name: variant.name,
     slug: 'ocular',
-    version: '0.1.0',
+    // Release Candidate 1. `buildNumber` is managed by EAS on the production
+    // profile (`appVersionSource: "remote"` + `autoIncrement`), so this is the
+    // marketing version App Store Connect shows and the only one edited by
+    // hand. It also drives `runtimeVersion` below, so a change here correctly
+    // fences OTA updates to binaries built from this version.
+    version: '1.0.0',
     orientation: 'portrait',
     icon: './assets/icon.png',
     scheme: variant.scheme,
@@ -83,7 +88,13 @@ export default ({ config }: ConfigContext): ExpoConfig => {
           image: './assets/splash-icon.png',
           resizeMode: 'contain',
           backgroundColor: '#0B0B0F',
-          dark: { backgroundColor: '#0B0B0F' },
+          // No `dark` variant. The app pins `userInterfaceStyle: 'dark'`
+          // above, and prebuild warns that the two together stop the splash
+          // from resolving correctly ("The existing userInterfaceStyle
+          // property is preventing splash screen from working properly").
+          // Nothing is lost by dropping it: the dark background was the same
+          // #0B0B0F as the default, so this is pixel-identical and silences a
+          // real warning about a screen every launch goes through.
         },
       ],
       [

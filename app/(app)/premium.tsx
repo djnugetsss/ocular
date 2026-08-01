@@ -179,6 +179,33 @@ export default function PremiumScreen() {
   }, [isManaging, refresh]);
 
   const selected = selectedTier === 'pro_annual' ? products.annual : products.monthly;
+
+  /**
+   * Whether the prices on screen are ones we are entitled to quote.
+   *
+   * Only two cases qualify: RevenueCat returned live, localized, storefront
+   * -correct prices (`isLive`), or this build has no store at all — Simulator,
+   * Expo Go — where the static USD labels are an honest development stand-in
+   * and the mock purchase path is what runs.
+   *
+   * The third case is the dangerous one and used to be treated as the second:
+   * a real device whose product fetch failed. The screen then showed `$3.99`
+   * next to a live "Continue" button. That is wrong twice over — a user outside
+   * the US storefront is quoted a price they will not be charged (Guideline
+   * 2.3.1 / 3.1.2), and the button cannot complete a purchase because there is
+   * no package to buy, which is the "tapping Buy does nothing" that Guideline
+   * 2.1 rejections are made of. So in that case no price is shown and nothing
+   * offers to charge; the user gets the reason and a retry.
+   */
+  const arePricesQuotable = products.isLive || !products.hasStore;
+  const priceLabelFor = (plan: { priceLabel: string }) =>
+    arePricesQuotable ? plan.priceLabel : '—';
+  const canPurchase = arePricesQuotable && !products.isLoading;
+  const ctaLabel = canPurchase
+    ? `Continue — ${priceLabelFor(selected)}/${selected.period}`
+    : products.isLoading
+      ? 'Loading plans…'
+      : 'Prices unavailable';
   // Already-Pro covers the moment after a verified purchase and any live
   // renewal — the sheet must never sell someone a plan they hold.
   const isPro = entitlements.isPro || didPurchase;
@@ -213,10 +240,22 @@ export default function PremiumScreen() {
           <View className="h-16 w-16 items-center justify-center rounded-full bg-accent-soft">
             <Icon name="eye.fill" size={28} color={colors.accent.DEFAULT} />
           </View>
+          {/* The subscription's actual name, on the screen that sells it.
+              Guideline 3.1.2 requires the title, length, and price of a
+              subscription to appear on the purchase surface; the length and
+              price are on the plan cards and the CTA, but "Ocular Pro" was
+              named nowhere here — the hero led with a benefit line and the
+              comparison column just said "Pro". */}
+          <Text
+            maxFontSizeMultiplier={1.6}
+            className="mt-5 text-center text-sm font-semibold uppercase tracking-widest text-accent"
+          >
+            Ocular Pro
+          </Text>
           <Text
             accessibilityRole="header"
             maxFontSizeMultiplier={1.4}
-            className="mt-5 text-center text-title1 font-semibold text-ink"
+            className="mt-2 text-center text-title1 font-semibold text-ink"
           >
             {PAYWALL_HEADLINE}
           </Text>
@@ -284,14 +323,14 @@ export default function PremiumScreen() {
               <View accessibilityRole="radiogroup" className="mt-8 flex-row gap-3">
                 <PlanOptionCard
                   name="Monthly"
-                  priceLabel={products.monthly.priceLabel}
+                  priceLabel={priceLabelFor(products.monthly)}
                   period="month"
                   isSelected={selectedTier === 'pro_monthly'}
                   onPress={() => setSelectedTier('pro_monthly')}
                 />
                 <PlanOptionCard
                   name="Annual"
-                  priceLabel={products.annual.priceLabel}
+                  priceLabel={priceLabelFor(products.annual)}
                   period="year"
                   badge={ANNUAL_BADGE}
                   isSelected={selectedTier === 'pro_annual'}
@@ -301,21 +340,37 @@ export default function PremiumScreen() {
 
               <View className="mt-5 gap-3">
                 <Button
-                  label={`Continue — ${selected.priceLabel}/${selected.period}`}
+                  label={ctaLabel}
                   onPress={() => void handlePurchase()}
                   isLoading={isPurchasing}
+                  disabled={!canPurchase}
                 />
                 <Text maxFontSizeMultiplier={2} className="text-center text-xs text-ink-faint">
                   Cancel anytime in Settings. Renews until you do.
                 </Text>
+                {/* Prices could not be fetched on a device that *has* a store.
+                    Say what happened, quote nothing, and offer the one action
+                    that can fix it — rather than presenting a USD placeholder
+                    as though it were the charge. */}
                 {products.didFail ? (
-                  <Text
-                    accessibilityLiveRegion="polite"
-                    maxFontSizeMultiplier={2}
-                    className="text-center text-xs text-signal-warn"
-                  >
-                    Showing reference prices — couldn’t reach the App Store.
-                  </Text>
+                  <View accessibilityLiveRegion="polite" className="items-center gap-1">
+                    <Text
+                      maxFontSizeMultiplier={2}
+                      className="text-center text-xs leading-4 text-signal-warn"
+                    >
+                      Couldn’t reach the App Store, so plan prices aren’t available right now.
+                    </Text>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel="Retry loading plans"
+                      onPress={products.reload}
+                      hitSlop={8}
+                    >
+                      <Text maxFontSizeMultiplier={2} className="text-xs font-medium text-accent">
+                        Try again
+                      </Text>
+                    </Pressable>
+                  </View>
                 ) : null}
                 <Button
                   label={isRestoring ? 'Checking…' : 'Restore Purchases'}

@@ -270,33 +270,15 @@ enum StoreKitBridge {
 
   // MARK: - Transaction updates
 
-  /**
-   Long-lived observer for renewals, revocations, refunds, family-sharing
-   changes, and purchases completed outside the app.
-
-   Must be started at launch and never cancelled for the app's lifetime, per
-   Apple's guidance — transactions that arrive with no observer attached are
-   redelivered, but only on the next launch, which would leave a renewal
-   invisible for a whole session.
-   */
-  static func observeTransactionUpdates(
-    productIds: @escaping () -> [String],
-    onChange: @escaping (EntitlementSnapshot, String) async -> Void
-  ) -> Task<Void, Never> {
-    return Task.detached {
-      for await result in Transaction.updates {
-        guard case .verified(let transaction) = result else {
-          // Never finished: an unverified transaction stays in the queue so a
-          // legitimate later verification can still deliver it.
-          continue
-        }
-
-        let reason = transaction.revocationDate == nil ? "updated" : "revoked"
-        await transaction.finish()
-
-        let snapshot = await currentEntitlement(productIds: productIds())
-        await onChange(snapshot, reason)
-      }
-    }
-  }
+  // REMOVED: `observeTransactionUpdates`.
+  //
+  // It iterated `Transaction.updates` and called `transaction.finish()` on every
+  // verified transaction. `Transaction.updates` is a broadcast — RevenueCat's
+  // SDK, which owns entitlements in this app, observes it too and must post a
+  // transaction to its backend *before* it is finished. Two observers racing to
+  // finish the same transaction can leave a completed purchase unrecorded: the
+  // user is charged and never granted Pro (App Review Guideline 3.1.1).
+  //
+  // This app has exactly one transaction observer and it belongs to RevenueCat.
+  // Nothing may reintroduce a second one here.
 }

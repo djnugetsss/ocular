@@ -1,12 +1,23 @@
 # StoreKit 2 — Ocular Pro
 
-> **Superseded (2026-07-24).** Subscriptions now run through **RevenueCat** —
-> see [REVENUECAT.md](./REVENUECAT.md). The JS entitlement layer talks to
-> `react-native-purchases`, not the native `ocular-store` module described
-> below. The Swift module is kept in the repo for reference and as a fallback,
-> but it is no longer on the entitlement path, and nothing in `src/` imports it.
+> **Superseded (2026-07-24). Unlinked from the build (2026-07-31, RC1.)**
+> Subscriptions run through **RevenueCat** — see [REVENUECAT.md](./REVENUECAT.md).
 > This document is retained for its App Store Connect / product-configuration
 > checklist, which still applies.
+>
+> "Nothing imports it" turned out not to mean "it does not run". `ocular-store`
+> was autolinked, so its `OnCreate` started a lifetime `Transaction.updates`
+> observer at every launch that called `transaction.finish()` on every verified
+> transaction — racing RevenueCat, which observes the same broadcast and must
+> post a transaction to its backend before it is finished. The losing outcome is
+> a purchase that completes at Apple and never grants Pro: the user is charged
+> and stays on Free (App Store Guideline 3.1.1).
+>
+> The module's `expo-module.config.json` now declares no platforms, so it is not
+> autolinked or compiled, and the observer has been removed from the Swift as
+> well so re-linking cannot silently restore the race. **The app has exactly one
+> transaction observer and it belongs to RevenueCat.** Reviving this module means
+> deleting the RevenueCat integration first, not running both.
 
 How subscriptions were wired under the native StoreKit module, and the checklist
 to ship them.

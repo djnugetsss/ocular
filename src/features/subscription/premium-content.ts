@@ -69,21 +69,32 @@ export interface ComparisonRow {
 /**
  * The comparison, in reading order.
  *
- * Two honesty rules, both tested:
+ * Three honesty rules, all tested:
  * - "Session summaries" is included on *both* sides — the free plan keeps
  *   complete per-session results, and a comparison that pretended otherwise
  *   to sharpen the sell would be a lie about our own product.
+ * - "Data export" is likewise on both sides, because Profile's "Export my
+ *   data" is ungated and always has been. A user's own measurements are
+ *   theirs to take with them on any plan; listing export as a Pro-only
+ *   capability sold something free users already had.
  * - The numbers here are presentation of `entitlements.ts`; a test pins them
  *   to the real limits so the sales page cannot drift from the policy.
+ *
+ * **Nothing unshipped may appear in this table.** The `upcoming` flag exists
+ * for the day a built-but-staged capability needs it, but a subscription sheet
+ * is a sales contract: every row on it must be something the user can use the
+ * minute the charge goes through. Background tracking used to sit here as
+ * "Coming soon" — a promise attached to a price, and an App Review Guideline
+ * 3.1.2 problem. It returns to this list when `feature-flags.ts` marks it
+ * `live`, and not before.
  */
 export const PLAN_COMPARISON: ComparisonRow[] = [
   { label: 'Daily check-ins', free: '3', pro: 'Unlimited' },
   { label: 'Session history', free: 'Last 10', pro: 'Unlimited' },
   { label: 'Session summaries', free: true, pro: true },
+  { label: 'Data export', free: true, pro: true },
   { label: 'Full Insights', free: false, pro: true },
   { label: 'Trend analytics', free: false, pro: true },
-  { label: 'Data export', free: false, pro: true },
-  { label: 'Background tracking', free: false, pro: true, upcoming: true },
 ];
 
 /** What free keeps, stated on the sheet so the upgrade never reads as a threat. */

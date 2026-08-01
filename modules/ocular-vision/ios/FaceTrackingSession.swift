@@ -488,10 +488,15 @@ extension FaceTrackingSession: AVCaptureVideoDataOutputSampleBufferDelegate {
         orientation: visionOrientation
       )
     } catch {
-      delegate?.faceTrackingSession(
-        self,
-        didFailWith: .visionRequestFailed(error.localizedDescription)
-      )
+      // Routed through `fail(with:)` like every other failure rather than
+      // calling the delegate from here. Two things were wrong with the direct
+      // call: it invoked the delegate on `captureQueue`, and the delegate's
+      // implementation fires an Expo `EventDispatcher`, which must be touched
+      // only from the main thread; and it skipped the `.failed` state, so a
+      // dead Vision pipeline kept reporting itself as `running` and the scan
+      // screen went on showing a live-looking session that could never produce
+      // another frame. `fail(with:)` hops to main and does both.
+      fail(with: .visionRequestFailed(error.localizedDescription))
       return
     }
 

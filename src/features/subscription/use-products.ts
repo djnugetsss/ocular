@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import type { PaidTier } from '@/features/subscription/entitlements';
 import { PRICING } from '@/features/subscription/premium-content';
@@ -36,6 +36,17 @@ export interface ProductsState {
   isLoading: boolean;
   /** True when the store exists but products could not be fetched (offline). */
   didFail: boolean;
+  /**
+   * Whether this build can transact at all. False on Simulator, Expo Go, and
+   * any build without a RevenueCat key — where the static labels below are the
+   * honest and final answer rather than a stand-in for a price we failed to
+   * fetch. The paywall needs the distinction: "no store here" is a development
+   * state, "store present, prices missing" is a condition in which it must not
+   * quote a price or offer to charge one.
+   */
+  hasStore: boolean;
+  /** Re-fetches after a failure, for the paywall's retry. */
+  reload: () => void;
 }
 
 const FALLBACK: Pick<ProductsState, 'monthly' | 'annual'> = {
@@ -47,15 +58,25 @@ const FALLBACK: Pick<ProductsState, 'monthly' | 'annual'> = {
   annual: { tier: 'pro_annual', priceLabel: PRICING.annual.priceLabel, period: 'year' },
 };
 
+type ProductsData = Pick<ProductsState, 'monthly' | 'annual' | 'isLive' | 'isLoading' | 'didFail'>;
+
 export function useProducts(): ProductsState {
-  const [state, setState] = useState<ProductsState>({
+  const hasStore = isPurchasesAvailable();
+  const [attempt, setAttempt] = useState(0);
+  const [state, setState] = useState<ProductsData>({
     ...FALLBACK,
     isLive: false,
     // Only "loading" when there is a store to load from; otherwise the static
     // labels are the final answer and the paywall renders them at once.
-    isLoading: isPurchasesAvailable(),
+    isLoading: hasStore,
     didFail: false,
   });
+
+  const reload = useCallback(() => {
+    if (!isPurchasesAvailable()) return;
+    setState((prev) => ({ ...prev, isLoading: true, didFail: false }));
+    setAttempt((count) => count + 1);
+  }, []);
 
   useEffect(() => {
     if (!isPurchasesAvailable()) return;
@@ -89,9 +110,9 @@ export function useProducts(): ProductsState {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [attempt]);
 
-  return state;
+  return { ...state, hasStore, reload };
 }
 
 function planFrom(product: StoreProduct): DisplayPlan {

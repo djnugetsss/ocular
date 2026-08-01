@@ -47,8 +47,17 @@ describe('entitlementsFor', () => {
 
   it('grants a free user none of the paid capabilities', () => {
     expect(FREE.hasTrendAnalytics).toBe(false);
-    expect(FREE.hasExport).toBe(false);
+    expect(FREE.hasFullInsights).toBe(false);
     expect(FREE.hasBackgroundTracking).toBe(false);
+  });
+
+  it('lets a free user export their own data', () => {
+    // Export is not a paid capability and never was in the UI: Profile's
+    // "Export my data" is ungated. The record said otherwise, and the paywall
+    // rendered that record — selling free users a capability they already had.
+    // A plan that could withhold a user's own measurements would make the free
+    // tier a place data goes in and cannot come out of.
+    expect(FREE.hasExport).toBe(true);
   });
 
   it('reports its own tier back, so the provider cannot mislabel a plan', () => {

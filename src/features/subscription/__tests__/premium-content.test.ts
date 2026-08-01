@@ -95,20 +95,31 @@ describe('PLAN_COMPARISON', () => {
     expect(summaries?.pro).toBe(true);
   });
 
-  it('lists the four gated Pro capabilities as free-excluded, pro-included', () => {
-    for (const needle of [/insights/i, /trend/i, /export/i, /background/i]) {
+  it('lists the gated Pro capabilities as free-excluded, pro-included', () => {
+    for (const needle of [/insights/i, /trend/i]) {
       const row = byLabel(needle);
       expect(row?.free).toBe(false);
       expect(row?.pro).toBe(true);
     }
   });
 
-  it('marks background tracking as upcoming, never shipped', () => {
-    // Selling an unbuilt feature as current is the one dishonesty App Review
-    // and users agree on.
-    expect(byLabel(/background/i)?.upcoming).toBe(true);
-    const shipped = PLAN_COMPARISON.filter((row) => !row.upcoming);
-    expect(shipped.length).toBeGreaterThanOrEqual(6);
+  it('shows data export as included on BOTH plans', () => {
+    // Profile's "Export my data" is ungated on every plan, and should be — a
+    // user's own measurements are theirs to take with them. The table listed it
+    // as Pro-only, which sold free users something they already had.
+    const row = byLabel(/export/i);
+    expect(row?.free).toBe(true);
+    expect(row?.pro).toBe(true);
+  });
+
+  it('never advertises an unshipped capability on the purchase screen', () => {
+    // A subscription sheet is a sales contract: every row must be usable the
+    // minute the charge goes through. Background tracking sat here as "Coming
+    // soon" — a promise attached to a price, and Guideline 3.1.2's exact
+    // complaint. Nothing on this table may carry `upcoming` while it is what
+    // the paywall shows.
+    expect(PLAN_COMPARISON.every((row) => !row.upcoming)).toBe(true);
+    expect(byLabel(/background/i)).toBeUndefined();
   });
 
   it('never marks a Pro cell as excluded — Pro has everything free has', () => {
