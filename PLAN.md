@@ -252,11 +252,11 @@ travels with the code that opens the camera.
 
 Three variants install side by side via `APP_VARIANT`:
 
-| Variant     | Bundle ID                | Name             |
-| ----------- | ------------------------ | ---------------- |
-| development | `com.ocular.app.dev`     | Ocular (Dev)     |
-| preview     | `com.ocular.app.preview` | Ocular (Preview) |
-| production  | `com.ocular.app`         | Ocular           |
+| Variant     | Bundle ID                      | Name             |
+| ----------- | ------------------------------ | ---------------- |
+| development | `com.anshmehta.ocular.dev`     | Ocular (Dev)     |
+| preview     | `com.anshmehta.ocular.preview` | Ocular (Preview) |
+| production  | `com.anshmehta.ocular`         | Ocular           |
 
 `env.ts` validates configuration at **import time** and throws with a remediation
 message. A missing Supabase URL otherwise surfaces as an opaque fetch failure

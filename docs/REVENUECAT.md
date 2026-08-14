@@ -100,32 +100,43 @@ takes that total for an accurate `hiddenCount`.
 
 ## Configuration checklist
 
-**RevenueCat dashboard**
+The app's bundle identifier is **`com.anshmehta.ocular`** (`.dev` / `.preview`
+suffixes per variant). RevenueCat and App Store Connect must both be configured
+against that exact id — receipt validation matches on it, so a RevenueCat iOS app
+still pointing at an older identifier will verify nothing.
 
-1. Create the iOS app, connect it to App Store Connect (shared secret / in-app
-   purchase key).
-2. Add products `ocular.monthly` and `ocular.yearly` (must match
-   `products.ts`).
+**App — done**
+
+- ✅ `EXPO_PUBLIC_REVENUECAT_IOS_KEY` is set. It lives in `.env.local` for local
+  runs and as a plaintext EAS environment variable on the `development`,
+  `preview`, and `production` environments for cloud builds. `.env.local` is
+  gitignored and never reaches an EAS builder, so the EAS copy is the one that
+  matters for a submitted binary. The key is publishable and safe to ship, like
+  the Supabase anon key.
+- ✅ `react-native-purchases` is declared and links natively (`RNPurchases` →
+  `PurchasesHybridCommon` → `RevenueCat` in `ios/Podfile.lock`). No config plugin
+  is required. A clean `expo prebuild` reproduces it.
+
+**RevenueCat dashboard — owed**
+
+1. Create the iOS app for bundle id `com.anshmehta.ocular` and connect it to App
+   Store Connect (App-Specific Shared Secret or In-App Purchase Key).
+2. Add products `ocular.monthly` and `ocular.yearly` (must match `products.ts`).
 3. Create one entitlement with identifier **`pro`** (matches
    `PRO_ENTITLEMENT_ID`) and attach both products to it.
-4. Create an Offering (default `current`) with a Monthly and an Annual package
-   pointing at those products.
-5. Copy the **public** iOS SDK key.
+4. Create an Offering and mark it **current** — `getProducts` and `purchase` both
+   read `offerings.current` only — with a Monthly and an Annual package pointing
+   at those products. A partial offering (one package missing) is treated as a
+   fetch failure: the paywall quotes no price and disables the CTA rather than
+   selling a plan it cannot complete.
 
-**App**
+**App Store Connect — owed**
 
-6. `EXPO_PUBLIC_REVENUECAT_IOS_KEY=<public key>` in the build environment (EAS
-   secret / `.env`). It is publishable and safe to ship, like the Supabase anon
-   key.
-7. `npm install` (declares `react-native-purchases`), then rebuild the dev
-   client / run `expo prebuild` + `pod install` — the SDK is native and
-   autolinks; no config plugin is required.
-
-**App Store Connect**
-
-8. Subscription group, both products, localized display names, prices, and the
+5. App record for `com.anshmehta.ocular`.
+6. Subscription group, both products, localized display names, prices, and the
    Paid Applications agreement — see the checklist in
-   [STOREKIT.md](./STOREKIT.md), which still applies.
+   [STOREKIT.md](./STOREKIT.md), which still applies. Until that agreement is
+   signed, sandbox purchases fail regardless of everything above.
 
 ## Testing
 

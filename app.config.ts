@@ -11,7 +11,25 @@ type AppVariant = 'development' | 'preview' | 'production';
 
 const VARIANT = (process.env.APP_VARIANT ?? 'development') as AppVariant;
 
-const BUNDLE_ID_BASE = 'com.ocular.app';
+// Reverse-DNS under a personal namespace rather than `com.ocular.app`, which was
+// already registered to someone else in App Store Connect. Bundle ids are global
+// and permanent once an app ships, so this string is load-bearing in three places
+// outside the repo: the Apple App ID, the App Store Connect app record, and the
+// RevenueCat iOS app it verifies receipts against. Changing it means changing all
+// three together.
+const BUNDLE_ID_BASE = 'com.anshmehta.ocular';
+
+/**
+ * The EAS project this app builds under.
+ *
+ * Written literally rather than read from `EAS_PROJECT_ID`. The EAS CLI
+ * evaluates this config in contexts that do not load `.env.local` — which is
+ * gitignored and so never reaches an EAS builder either — leaving the project
+ * unlinked: `eas env:list` and `eas build` both reported "EAS project not
+ * configured" while the id sat in the env file. It is an identifier, not a
+ * credential: it names the project and authorizes nothing.
+ */
+const EAS_PROJECT_ID = '69baa42f-e01e-4885-a5e1-1922bcdc339d';
 
 const VARIANT_CONFIG: Record<AppVariant, { name: string; bundleSuffix: string; scheme: string }> = {
   development: { name: 'Ocular (Dev)', bundleSuffix: '.dev', scheme: 'ocular-dev' },
@@ -128,17 +146,22 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       revenueCatIosKey: process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY,
       router: {},
       eas: {
-        // Populated by `eas init`. Kept here so the key is discoverable in review.
-        projectId: process.env.EAS_PROJECT_ID,
+        projectId: EAS_PROJECT_ID,
       },
     },
-    updates: {
-      url: process.env.EAS_PROJECT_ID
-        ? `https://u.expo.dev/${process.env.EAS_PROJECT_ID}`
-        : undefined,
-      fallbackToCacheTimeout: 0,
-    },
+    // No `updates` block: OTA is not wired up for RC1. Declaring `updates.url`
+    // without `expo-updates` installed is not merely inert — every `expo`/`eas`
+    // command that evaluates this config auto-installs the package, so the
+    // declaration silently added a native dependency on each invocation. OTA has
+    // never actually functioned here (the package was never a dependency), so
+    // nothing is lost by stating that plainly. To enable it after RC1: install
+    // `expo-updates`, restore `updates: { url: `https://u.expo.dev/${EAS_PROJECT_ID}`,
+    // fallbackToCacheTimeout: 0 }`, then re-run `expo prebuild --clean`.
     runtimeVersion: { policy: 'appVersion' },
-    owner: process.env.EXPO_OWNER,
+    // The Expo account the project belongs to. Literal for the same reason as
+    // EAS_PROJECT_ID above: `EXPO_OWNER` was never set outside the gitignored
+    // .env.local (where it sat commented out), so every CLI evaluation of this
+    // config resolved it to `undefined` and left the project ownerless.
+    owner: 'djnugets',
   };
 };

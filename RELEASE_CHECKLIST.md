@@ -11,6 +11,57 @@ anything camera-dependent is code-verified only and is called out as such.
 
 ---
 
+## Addendum — 2026-08-13, submission prep
+
+Configuration only. No application code was changed; the verification matrix
+below still stands as written on 2026-08-01.
+
+**Done**
+
+- **Bundle identifier changed** from `com.ocular.app` (already registered to
+  another developer) to **`com.anshmehta.ocular`**, with `.dev` / `.preview`
+  variant suffixes. This is load-bearing outside the repo in three places that
+  must agree: the Apple App ID, the App Store Connect app record, and the
+  RevenueCat iOS app.
+- **RevenueCat production key installed.** `EXPO_PUBLIC_REVENUECAT_IOS_KEY` is a
+  real `appl_` publishable key, replacing a `test_` Test Store key that could
+  never have transacted against Apple.
+- **EAS environment variables created** on `development`, `preview`, and
+  `production`: the RevenueCat key plus `EXPO_PUBLIC_SUPABASE_URL` and
+  `EXPO_PUBLIC_SUPABASE_ANON_KEY`. Before this, all three environments were
+  empty. Because `env.ts` validates at import time and throws, a cloud build
+  would have crashed on launch before rendering — not degraded, crashed.
+- **EAS project linked**: `extra.eas.projectId` and `owner` are now literals
+  rather than reads of `EAS_PROJECT_ID` / `EXPO_OWNER`, which only ever existed
+  in the gitignored `.env.local` and so resolved to `undefined` for every CLI
+  invocation.
+- **`submit` block removed from `eas.json`.** It held `REPLACE_WITH_…`
+  placeholders that failed EAS validation. Both fields are optional and
+  `eas submit` prompts for them; `ascAppId` cannot exist until the App Store
+  Connect record does.
+- **`updates` block removed from `app.config.ts`.** It declared an OTA URL while
+  `expo-updates` was not a dependency, so every `expo`/`eas` invocation silently
+  auto-installed the package. OTA has never functioned here; re-enabling it is
+  documented inline and should follow RC1, not precede it.
+- **App icon replaced** with the eye glyph artwork. Prebuild flattens the
+  source's alpha channel — the generated 1024 reports `hasAlpha: no`, which is
+  what App Store Connect requires.
+- **Clean `expo prebuild --clean` reproduced**, confirming `ocular-store` stays
+  unlinked (absent from `Podfile.lock`, `Pods/`, and autolinking) and that
+  RevenueCat links natively.
+
+**Still owed, and none of it is code**
+
+1. App Store Connect app record for `com.anshmehta.ocular`, subscription group,
+   both products, and the **Paid Applications agreement**.
+2. RevenueCat dashboard: iOS app on the new bundle id, entitlement `pro`, both
+   products attached, and an Offering marked **current**.
+3. A real sandbox purchase, which has still never been completed in this tree.
+4. The physical-device pass, screenshots, nutrition label, and demo account —
+   see **Remaining risks** below, which is unchanged.
+
+---
+
 ## Verification matrix
 
 | #   | Area                   | Result          | Why                                                                                                                                                                                                                                                                                                               |
