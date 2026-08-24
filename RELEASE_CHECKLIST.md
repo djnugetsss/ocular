@@ -19,7 +19,7 @@ below still stands as written on 2026-08-01.
 **Done**
 
 - **Bundle identifier changed** from `com.ocular.app` (already registered to
-  another developer) to **`com.anshmehta.ocular`**, with `.dev` / `.preview`
+  another developer) to **`com.anshmehta.aiocular`**, with `.dev` / `.preview`
   variant suffixes. This is load-bearing outside the repo in three places that
   must agree: the Apple App ID, the App Store Connect app record, and the
   RevenueCat iOS app.
@@ -52,7 +52,7 @@ below still stands as written on 2026-08-01.
 
 **Still owed, and none of it is code**
 
-1. App Store Connect app record for `com.anshmehta.ocular`, subscription group,
+1. App Store Connect app record for `com.anshmehta.aiocular`, subscription group,
    both products, and the **Paid Applications agreement**.
 2. RevenueCat dashboard: iOS app on the new bundle id, entitlement `pro`, both
    products attached, and an Offering marked **current**.

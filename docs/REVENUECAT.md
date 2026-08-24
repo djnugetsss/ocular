@@ -100,7 +100,7 @@ takes that total for an accurate `hiddenCount`.
 
 ## Configuration checklist
 
-The app's bundle identifier is **`com.anshmehta.ocular`** (`.dev` / `.preview`
+The app's bundle identifier is **`com.anshmehta.aiocular`** (`.dev` / `.preview`
 suffixes per variant). RevenueCat and App Store Connect must both be configured
 against that exact id — receipt validation matches on it, so a RevenueCat iOS app
 still pointing at an older identifier will verify nothing.
@@ -119,7 +119,7 @@ still pointing at an older identifier will verify nothing.
 
 **RevenueCat dashboard — owed**
 
-1. Create the iOS app for bundle id `com.anshmehta.ocular` and connect it to App
+1. Create the iOS app for bundle id `com.anshmehta.aiocular` and connect it to App
    Store Connect (App-Specific Shared Secret or In-App Purchase Key).
 2. Add products `ocular.monthly` and `ocular.yearly` (must match `products.ts`).
 3. Create one entitlement with identifier **`pro`** (matches
@@ -132,7 +132,7 @@ still pointing at an older identifier will verify nothing.
 
 **App Store Connect — owed**
 
-5. App record for `com.anshmehta.ocular`.
+5. App record for `com.anshmehta.aiocular`.
 6. Subscription group, both products, localized display names, prices, and the
    Paid Applications agreement — see the checklist in
    [STOREKIT.md](./STOREKIT.md), which still applies. Until that agreement is

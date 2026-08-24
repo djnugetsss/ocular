@@ -17,7 +17,7 @@ const VARIANT = (process.env.APP_VARIANT ?? 'development') as AppVariant;
 // outside the repo: the Apple App ID, the App Store Connect app record, and the
 // RevenueCat iOS app it verifies receipts against. Changing it means changing all
 // three together.
-const BUNDLE_ID_BASE = 'com.anshmehta.ocular';
+const BUNDLE_ID_BASE = 'com.anshmehta.aiocular';
 
 /**
  * The EAS project this app builds under.
