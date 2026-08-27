@@ -32,6 +32,10 @@ import { PrivacyBadge } from '@/features/vision/components/PrivacyBadge';
 import { ScanIntroOverlay } from '@/features/vision/components/ScanIntroOverlay';
 import { StatusPill } from '@/features/vision/components/StatusPill';
 import { CoachingMonitor, type CoachingHint } from '@/features/vision/scan-coaching';
+import {
+  useScanDisplayPreference,
+  type ScanDisplayMode,
+} from '@/features/vision/scan-display-preference';
 import { useCameraPermission } from '@/features/vision/use-camera-permission';
 import { useFaceTracking } from '@/features/vision/use-face-tracking';
 import { haptics } from '@/lib/haptics';
@@ -100,6 +104,16 @@ export default function ScanScreen() {
   const showLandmarks = useProfileStore((state) => state.profile?.show_landmarks ?? false);
   const savePreference = useProfileStore((state) => state.saveInBackground);
   const setResultsHandoff = useSessionResultsStore((state) => state.setHandoff);
+
+  // Display-only: whether the live preview stays visible for the session or is
+  // covered. Never consulted by the capture pipeline — see the cover's
+  // placement in the render tree below.
+  const displayMode = useScanDisplayPreference((state) => state.mode);
+  const setDisplayMode = useScanDisplayPreference((state) => state.setMode);
+  const loadDisplayMode = useScanDisplayPreference((state) => state.load);
+  useEffect(() => {
+    void loadDisplayMode();
+  }, [loadDisplayMode]);
 
   // The plan's daily allowance, counted server-side and refreshed on focus.
   // Gating happens at *start*: a session already running is never interrupted
@@ -521,6 +535,15 @@ export default function ScanScreen() {
 
         {!isActive ? <IdleGuide width={previewSize.width} height={previewSize.height} /> : null}
 
+        {/* "Hide face" mode. Deliberately placed here — after the preview,
+            before the intro overlay, badge, and pill — so z-order alone does
+            the work: it covers the imagery, mesh, and guide oval, while
+            everything below stays above it and behaves identically in both
+            modes. The camera underneath is untouched: `isActive` stays true
+            and the native view keeps its bounds, so capture and Vision run on
+            exactly as they do with the preview visible. */}
+        {isActive && displayMode === 'hidden' ? <FocusCover /> : null}
+
         {/* The intro ritual (state 4½), under the badge in z-order: the
             on-device promise stays visible even over the scrim. */}
         {isActive && phase === 'intro' ? <ScanIntroOverlay onSkip={handleSkipIntro} /> : null}
@@ -621,6 +644,21 @@ export default function ScanScreen() {
                   value={targetSeconds}
                   onChange={handleSelectDuration}
                 />
+                {/* Display-only companion to the duration chips. Chosen before
+                    the session because the point of both modes is that the
+                    phone stops being worth touching once it starts. */}
+                <SegmentedControl<ScanDisplayMode>
+                  options={[
+                    { value: 'face', label: 'Show face', accessibilityLabel: 'Show face preview' },
+                    {
+                      value: 'hidden',
+                      label: 'Hide face',
+                      accessibilityLabel: 'Hide face preview',
+                    },
+                  ]}
+                  value={displayMode}
+                  onChange={setDisplayMode}
+                />
                 <Button label="Begin check-in" onPress={handleBegin} isLoading={isSaving} />
                 {/* Said once, on the last one — a counter on every idle
                     screen would turn a wellness ritual into a metered
@@ -680,6 +718,37 @@ function CenteredNotice(props: {
         <EmptyState {...props} />
       </View>
     </Screen>
+  );
+}
+
+/**
+ * The preview cover for "Hide face" mode.
+ *
+ * A display choice only: the camera and the Vision pipeline run underneath
+ * this view exactly as they do in "Show face" mode — the session is measured
+ * identically, and nothing here can reach the capture session.
+ *
+ * `pointerEvents="none"` keeps the intro overlay's tap-to-skip reachable
+ * beneath it; the footer sits outside the preview container entirely, so its
+ * clock and "End early" are unaffected either way. Hidden from accessibility
+ * for the same reason `IdleGuide` is: the badge, the status pill, and the
+ * footer already narrate the session, and a decorative surface should not
+ * become a VoiceOver stop.
+ */
+function FocusCover() {
+  return (
+    <View
+      pointerEvents="none"
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      className="absolute inset-0 bg-canvas-raised"
+    >
+      <View className="absolute inset-x-0 bottom-8 items-center">
+        <Text maxFontSizeMultiplier={2} className="text-sm text-ink-muted">
+          Camera on, preview hidden
+        </Text>
+      </View>
+    </View>
   );
 }
 
