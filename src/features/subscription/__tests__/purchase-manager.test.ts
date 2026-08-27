@@ -53,7 +53,7 @@ function purchasesError(over: { userCancelled?: boolean; readableErrorCode?: str
 function rcEntitlement(over: Partial<RcEntitlement> = {}): RcEntitlement {
   return {
     isActive: true,
-    productId: 'ocular.yearly',
+    productId: 'ocularai.yearly',
     willRenew: true,
     expiresAt: Date.now() + 1_000_000,
     environment: 'production',
@@ -72,7 +72,7 @@ describe('purchaseTier', () => {
   it('grants and caches a verified purchase, clearing any dev override', async () => {
     mockPurchase.mockResolvedValue({
       outcome: 'success',
-      entitlement: rcEntitlement({ productId: 'ocular.monthly', verifiedAt: 99 }),
+      entitlement: rcEntitlement({ productId: 'ocularai.monthly', verifiedAt: 99 }),
     });
 
     await expect(purchaseTier('pro_monthly', 'user-1')).resolves.toEqual({
@@ -155,7 +155,7 @@ describe('purchaseTier', () => {
 
 describe('restorePurchases', () => {
   it('restores an active subscription', async () => {
-    mockRestore.mockResolvedValue(rcEntitlement({ productId: 'ocular.yearly' }));
+    mockRestore.mockResolvedValue(rcEntitlement({ productId: 'ocularai.yearly' }));
     await expect(restorePurchases('user-1')).resolves.toEqual({
       status: 'restored',
       tier: 'pro_annual',

@@ -10,13 +10,13 @@ import type { PaidTier } from '@/features/subscription/entitlements';
  *
  * The map runs both ways on purpose. Purchasing needs tier → id; interpreting
  * an entitlement (or a renewal arriving at 3 a.m. through the transaction
- * observer) needs id → tier. A hand-written `if (productId === 'ocular.monthly')`
+ * observer) needs id → tier. A hand-written `if (productId === 'ocularai.monthly')`
  * anywhere in the app is the failure this module exists to prevent.
  */
 
 export const PRODUCT_IDS: Record<PaidTier, string> = {
-  pro_monthly: 'ocular.monthly',
-  pro_annual: 'ocular.yearly',
+  pro_monthly: 'ocularai.monthly',
+  pro_annual: 'ocularai.yearly',
 };
 
 /** Every id this app sells, in upgrade order. Passed to the store as-is. */

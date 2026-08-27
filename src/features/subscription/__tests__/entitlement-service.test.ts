@@ -60,7 +60,7 @@ const mockWriteCache = writeCachedEntitlement as jest.Mock;
 function rcEntitlement(over: Partial<RcEntitlement> = {}): RcEntitlement {
   return {
     isActive: true,
-    productId: 'ocular.yearly',
+    productId: 'ocularai.yearly',
     willRenew: true,
     expiresAt: Date.now() + 1_000_000,
     environment: 'production',
@@ -96,7 +96,7 @@ describe('resolveEntitlement — precedence', () => {
 
   it('identifies the user, verifies, and caches the verified tier', async () => {
     mockAvailable.mockReturnValue(true);
-    mockIdentify.mockResolvedValue(rcEntitlement({ productId: 'ocular.yearly' }));
+    mockIdentify.mockResolvedValue(rcEntitlement({ productId: 'ocularai.yearly' }));
 
     await expect(resolveEntitlement('user-1')).resolves.toEqual({
       tier: 'pro_annual',
@@ -110,7 +110,7 @@ describe('resolveEntitlement — precedence', () => {
   it('falls back to a direct entitlement read when identify returns nothing', async () => {
     mockAvailable.mockReturnValue(true);
     mockIdentify.mockResolvedValue(null);
-    mockGetEntitlement.mockResolvedValue(rcEntitlement({ productId: 'ocular.monthly' }));
+    mockGetEntitlement.mockResolvedValue(rcEntitlement({ productId: 'ocularai.monthly' }));
 
     await expect(resolveEntitlement('user-1')).resolves.toMatchObject({
       tier: 'pro_monthly',
@@ -170,7 +170,7 @@ describe('adoptEntitlementChange', () => {
   it('maps a renewal to its tier', async () => {
     const tier = await adoptEntitlementChange(
       'user-1',
-      rcEntitlement({ productId: 'ocular.monthly' })
+      rcEntitlement({ productId: 'ocularai.monthly' })
     );
     expect(tier).toBe('pro_monthly');
   });

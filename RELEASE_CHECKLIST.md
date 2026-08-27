@@ -271,7 +271,7 @@ None of these can be fixed from this repo. All of them block submission.
 
 1. `eas.json` → `submit.production.ios.ascAppId` and `appleTeamId` are still
    `REPLACE_WITH_...` placeholders.
-2. Both subscription products (`ocular.monthly`, `ocular.yearly`) must be in
+2. Both subscription products (`ocularai.monthly`, `ocularai.yearly`) must be in
    **Ready to Submit** in App Store Connect, attached to the RevenueCat `pro`
    entitlement, with localized display names and a review screenshot. Products
    not submitted alongside the binary are the most common IAP rejection.

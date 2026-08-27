@@ -121,7 +121,7 @@ still pointing at an older identifier will verify nothing.
 
 1. Create the iOS app for bundle id `com.anshmehta.aiocular` and connect it to App
    Store Connect (App-Specific Shared Secret or In-App Purchase Key).
-2. Add products `ocular.monthly` and `ocular.yearly` (must match `products.ts`).
+2. Add products `ocularai.monthly` and `ocularai.yearly` (must match `products.ts`).
 3. Create one entitlement with identifier **`pro`** (matches
    `PRO_ENTITLEMENT_ID`) and attach both products to it.
 4. Create an Offering and mark it **current** — `getProducts` and `purchase` both

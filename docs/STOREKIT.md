@@ -94,9 +94,9 @@ The dev/preview **Simulated plan** switch in Profile → Plan still works with n
       load until it is, and this is the single most common "prices are blank"
       cause.
 - [ ] Create the **auto-renewable subscription group** "Ocular Pro".
-- [ ] Create product **`ocular.monthly`** — $3.99/month. Product ID must match
+- [ ] Create product **`ocularai.monthly`** — $3.99/month. Product ID must match
       `PRODUCT_IDS.pro_monthly` exactly.
-- [ ] Create product **`ocular.yearly`** — $39.99/year. Must match
+- [ ] Create product **`ocularai.yearly`** — $39.99/year. Must match
       `PRODUCT_IDS.pro_annual`.
 - [ ] Each product: localized display name + description, price, and a
       **review screenshot** of the paywall (required, or the product is stuck

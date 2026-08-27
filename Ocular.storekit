@@ -42,7 +42,7 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "ocular.monthly",
+          "productID" : "ocularai.monthly",
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "Ocular Pro Monthly",
           "subscriptionGroupID" : "21600001",
@@ -63,7 +63,7 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "ocular.yearly",
+          "productID" : "ocularai.yearly",
           "recurringSubscriptionPeriod" : "P1Y",
           "referenceName" : "Ocular Pro Annual",
           "subscriptionGroupID" : "21600001",

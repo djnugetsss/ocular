@@ -9,19 +9,19 @@ describe('product ids', () => {
   it('match the App Store Connect identifiers exactly', () => {
     // These strings are the contract with App Store Connect; a typo here is a
     // paywall that sells nothing. Pinned so a rename is a deliberate diff.
-    expect(PRODUCT_IDS.pro_monthly).toBe('ocular.monthly');
-    expect(PRODUCT_IDS.pro_annual).toBe('ocular.yearly');
+    expect(PRODUCT_IDS.pro_monthly).toBe('ocularai.monthly');
+    expect(PRODUCT_IDS.pro_annual).toBe('ocularai.yearly');
   });
 
   it('lists every sellable id', () => {
-    expect(ALL_PRODUCT_IDS).toEqual(['ocular.monthly', 'ocular.yearly']);
+    expect(ALL_PRODUCT_IDS).toEqual(['ocularai.monthly', 'ocularai.yearly']);
   });
 });
 
 describe('tierForProductId', () => {
   it('resolves each id to its tier', () => {
-    expect(tierForProductId('ocular.monthly')).toBe('pro_monthly');
-    expect(tierForProductId('ocular.yearly')).toBe('pro_annual');
+    expect(tierForProductId('ocularai.monthly')).toBe('pro_monthly');
+    expect(tierForProductId('ocularai.yearly')).toBe('pro_annual');
   });
 
   it('returns null for an unknown, discontinued, or empty id', () => {

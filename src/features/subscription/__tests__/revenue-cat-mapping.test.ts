@@ -36,7 +36,7 @@ function customerInfoWithPro(over: ActiveOverrides = {}) {
           identifier: 'pro',
           isActive: over.isActive ?? true,
           willRenew: over.willRenew ?? true,
-          productIdentifier: over.productIdentifier ?? 'ocular.yearly',
+          productIdentifier: over.productIdentifier ?? 'ocularai.yearly',
           // `in` rather than `??` so an intentional null expiration survives.
           expirationDate:
             'expirationDate' in over ? (over.expirationDate ?? null) : '2099-01-01T00:00:00Z',
@@ -52,7 +52,7 @@ function customerInfoWithPro(over: ActiveOverrides = {}) {
 function rcEntitlement(over: Partial<RcEntitlement> = {}): RcEntitlement {
   return {
     isActive: true,
-    productId: 'ocular.yearly',
+    productId: 'ocularai.yearly',
     willRenew: true,
     expiresAt: Date.now() + 1_000_000,
     environment: 'production',
@@ -64,11 +64,11 @@ function rcEntitlement(over: Partial<RcEntitlement> = {}): RcEntitlement {
 describe('entitlementFromCustomerInfo', () => {
   it('reads the active pro entitlement and its product', () => {
     const result = entitlementFromCustomerInfo(
-      customerInfoWithPro({ productIdentifier: 'ocular.monthly' })
+      customerInfoWithPro({ productIdentifier: 'ocularai.monthly' })
     );
     expect(result).toMatchObject({
       isActive: true,
-      productId: 'ocular.monthly',
+      productId: 'ocularai.monthly',
       willRenew: true,
       environment: 'production',
     });
@@ -106,8 +106,10 @@ describe('entitlementFromCustomerInfo', () => {
 
 describe('tierFromEntitlement', () => {
   it('grants the matching tier for an active subscription', () => {
-    expect(tierFromEntitlement(rcEntitlement({ productId: 'ocular.monthly' }))).toBe('pro_monthly');
-    expect(tierFromEntitlement(rcEntitlement({ productId: 'ocular.yearly' }))).toBe('pro_annual');
+    expect(tierFromEntitlement(rcEntitlement({ productId: 'ocularai.monthly' }))).toBe(
+      'pro_monthly'
+    );
+    expect(tierFromEntitlement(rcEntitlement({ productId: 'ocularai.yearly' }))).toBe('pro_annual');
   });
 
   it('treats a null entitlement as free', () => {
