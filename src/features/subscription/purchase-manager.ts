@@ -35,6 +35,11 @@ export type PurchaseOutcome =
   | { status: 'pending' }
   /** No store in this build, or the product is not available. */
   | { status: 'unavailable' }
+  /**
+   * The Apple Account already owns this subscription. Not a failure and not
+   * "unavailable" — the remedy is Restore Purchases.
+   */
+  | { status: 'already_owned' }
   /** A genuine failure (network, verification, system). */
   | { status: 'failed'; code: StoreErrorCode; message?: string };
 
@@ -64,10 +69,13 @@ export async function purchaseTier(
     if (result.outcome === 'unavailable') return { status: 'unavailable' };
 
     const grantedTier = tierFromEntitlement(result.entitlement ?? null);
-    // Pro for any product we recognize; guard the impossible case (a success
-    // for an unknown product) as a failure that grants nothing and writes
-    // nothing, rather than claiming — or caching — a tier we cannot name.
-    if (!isProTier(grantedTier)) return { status: 'failed', code: STORE_ERROR.unknown };
+    // Guard the near-impossible case: the store reported success but the
+    // entitlement names a product this build does not recognize. Grant
+    // nothing and cache nothing — a tier we cannot name must not unlock the
+    // app. But the purchase itself *succeeded*, so a charge may exist: this
+    // is `unconfirmed`, never the generic failure whose copy promises the
+    // user they were not charged.
+    if (!isProTier(grantedTier)) return { status: 'failed', code: STORE_ERROR.unconfirmed };
 
     if (userId && result.entitlement) {
       await writeCachedEntitlement(userId, grantedTier, result.entitlement.verifiedAt);
@@ -80,6 +88,7 @@ export async function purchaseTier(
     const code = classifyPurchaseError(error);
     if (code === STORE_ERROR.cancelled) return { status: 'cancelled' };
     if (code === STORE_ERROR.pending) return { status: 'pending' };
+    if (code === STORE_ERROR.alreadyOwned) return { status: 'already_owned' };
     if (code === STORE_ERROR.unavailable) return { status: 'unavailable' };
     return {
       status: 'failed',

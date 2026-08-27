@@ -110,6 +110,13 @@ export default function PremiumScreen() {
         case 'pending':
           setToast('Your purchase is pending approval. You’ll get Pro once it’s approved.');
           return;
+        case 'already_owned':
+          // They are already paying for this. Point at the remedy that
+          // actually works rather than implying the store is broken.
+          setToast(
+            'You already have a subscription on this Apple Account. Tap Restore Purchases to get it back.'
+          );
+          return;
         case 'unavailable':
           setToast('Subscriptions aren’t available on this device right now.');
           return;
@@ -117,7 +124,11 @@ export default function PremiumScreen() {
           setToast(
             outcome.code === STORE_ERROR.network
               ? 'No connection to the App Store. Check your network and try again.'
-              : 'That purchase didn’t go through. You haven’t been charged.'
+              : outcome.code === STORE_ERROR.unconfirmed
+                ? // A charge may exist on this path, so the reassurance the
+                  // generic copy gives would be a lie about money.
+                  'Your purchase may have gone through, but we couldn’t confirm it. Try Restore Purchases, and contact support if you were charged.'
+                : 'That purchase didn’t go through. You haven’t been charged.'
           );
           return;
       }

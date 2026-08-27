@@ -142,8 +142,10 @@ describe('classifyPurchaseError', () => {
     expect(
       classifyPurchaseError({ readableErrorCode: 'ProductNotAvailableForPurchaseError' })
     ).toBe(STORE_ERROR.unavailable);
+    // Distinct from `unavailable`: already owning the product is the opposite
+    // situation from being unable to buy it, and the remedy is Restore.
     expect(classifyPurchaseError({ readableErrorCode: 'ProductAlreadyPurchasedError' })).toBe(
-      STORE_ERROR.unavailable
+      STORE_ERROR.alreadyOwned
     );
   });
 

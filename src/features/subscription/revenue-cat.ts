@@ -395,7 +395,20 @@ export const STORE_ERROR = {
   cancelled: 'ERR_STORE_CANCELLED',
   pending: 'ERR_STORE_PENDING',
   unavailable: 'ERR_STORE_UNAVAILABLE',
+  /**
+   * The Apple Account already owns this product. Kept distinct from
+   * `unavailable`: the two are opposites from where the user sits — one means
+   * there is nothing to buy, this one means they already bought it — and
+   * collapsing them told a subscriber their device could not sell them the
+   * thing they were already paying for. The answer is Restore, not retry.
+   */
+  alreadyOwned: 'ERR_STORE_ALREADY_OWNED',
   notAllowed: 'ERR_STORE_NOT_ALLOWED',
+  /**
+   * The store reported success but the grant could not be confirmed, so a
+   * charge may exist. Never say "you haven't been charged" on this code.
+   */
+  unconfirmed: 'ERR_STORE_UNCONFIRMED',
   unknown: 'ERR_STORE_UNKNOWN',
 } as const;
 
@@ -421,11 +434,14 @@ export function classifyPurchaseError(error: unknown): StoreErrorCode {
   if (code.includes('network')) return STORE_ERROR.network;
   if (code.includes('pending')) return STORE_ERROR.pending;
   if (code.includes('notallowed') || code.includes('not_allowed')) return STORE_ERROR.notAllowed;
+  // Checked before the unavailable family: "already purchased" is a distinct
+  // answer with a distinct remedy (Restore), not a flavor of "cannot buy".
+  if (code.includes('alreadypurchased') || code.includes('already_purchased')) {
+    return STORE_ERROR.alreadyOwned;
+  }
   if (
     code.includes('notavailable') ||
     code.includes('not_available') ||
-    code.includes('alreadypurchased') ||
-    code.includes('already_purchased') ||
     code.includes('productnotavailable')
   ) {
     return STORE_ERROR.unavailable;

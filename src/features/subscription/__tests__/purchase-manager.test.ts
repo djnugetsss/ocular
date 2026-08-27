@@ -108,6 +108,17 @@ describe('purchaseTier', () => {
     await expect(purchaseTier('pro_annual', 'user-1')).resolves.toEqual({ status: 'unavailable' });
   });
 
+  it('maps an already-purchased error to already_owned, not unavailable', async () => {
+    // The two are opposites from the user's side: one means there is nothing
+    // to buy, the other that they already bought it and need Restore.
+    mockPurchase.mockRejectedValue(
+      purchasesError({ readableErrorCode: 'ProductAlreadyPurchasedError' })
+    );
+    await expect(purchaseTier('pro_annual', 'user-1')).resolves.toEqual({
+      status: 'already_owned',
+    });
+  });
+
   it('classifies a thrown network error by its code', async () => {
     mockPurchase.mockRejectedValue(purchasesError({ readableErrorCode: 'NetworkError' }));
     await expect(purchaseTier('pro_annual', 'user-1')).resolves.toMatchObject({
@@ -122,7 +133,13 @@ describe('purchaseTier', () => {
       entitlement: rcEntitlement({ productId: 'ocular.lifetime' }),
     });
     const result = await purchaseTier('pro_annual', 'user-1');
-    expect(result.status).toBe('failed');
+    expect(result).toMatchObject({
+      status: 'failed',
+      // Not the generic `unknown`: the store reported success here, so a
+      // charge may exist and the copy for this code must not promise
+      // otherwise. Pinned so the reassuring message cannot creep back.
+      code: STORE_ERROR.unconfirmed,
+    });
     expect(mockWriteCache).not.toHaveBeenCalled();
   });
 
