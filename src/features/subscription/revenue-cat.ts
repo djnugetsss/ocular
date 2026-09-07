@@ -99,7 +99,6 @@ type CustomerInfoUpdateListener = (info: CustomerInfo) => void;
 
 interface PurchasesStatic {
   configure(options: { apiKey: string; appUserID?: string | null }): void;
-  isConfigured?(): boolean;
   logIn(appUserID: string): Promise<{ customerInfo: CustomerInfo; created: boolean }>;
   logOut(): Promise<CustomerInfo>;
   getCustomerInfo(): Promise<CustomerInfo>;
@@ -118,7 +117,19 @@ function loadPurchases(): PurchasesStatic | null {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mod = require('react-native-purchases') as { default?: PurchasesStatic };
     return mod?.default ?? null;
-  } catch {
+  } catch (error) {
+    // Only reached when the module itself cannot be loaded: a missing pod, a
+    // broken autolink, a binary built without the native module. That is a
+    // shipped-build failure, not the benign Expo Go/Jest/web absence described
+    // above — those all resolve the module fine and simply have no native side.
+    // So it must not be silent.
+    //
+    // `console.error` specifically. React Native maps JS log levels onto
+    // `os_log` types (RCTLog.mm): only `error` becomes OS_LOG_TYPE_ERROR, while
+    // `log`/`info`/`warn` become DEBUG/INFO, which a default device-log capture
+    // discards. Anything quieter than this is invisible in precisely the
+    // release build where it is the thing worth knowing.
+    console.error('[OCULAR-RC] react-native-purchases failed to load; purchases disabled.', error);
     return null;
   }
 }
@@ -145,13 +156,20 @@ let configured = false;
  * attached later via `identifyUser`. Idempotent and safe to call before any
  * other entry point, so ordering between the provider's one-time configure and
  * a racing account resolution never matters.
+ *
+ * The module-scope `configured` flag is the only gate, and deliberately so.
+ * This function also consulted the SDK's own `Purchases.isConfigured()`, which
+ * is *async*: it returns `Promise<boolean>`, and a promise is always truthy, so
+ * `!(Purchases.isConfigured() ?? false)` evaluated to `false` on every launch
+ * and `configure` was never called in any shipped build. Nothing here may use
+ * the result of an SDK call synchronously.
  */
 function ensureConfigured(): PurchasesStatic | null {
   if (!Purchases || !API_KEY) return null;
-  if (!configured && !(Purchases.isConfigured?.() ?? false)) {
+  if (!configured) {
     Purchases.configure({ apiKey: API_KEY });
+    configured = true;
   }
-  configured = true;
   return Purchases;
 }
 
