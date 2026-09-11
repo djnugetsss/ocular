@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import Animated, { FadeIn, FadeInDown, ReduceMotion } from 'react-native-reanimated';
 
 import { Button } from '@/components/ui/Button';
@@ -45,10 +45,35 @@ import { colors } from '@/theme/tokens';
  * elsewhere is reflected the moment this screen appears.
  */
 
+/**
+ * Ocular ships free, so this route no longer sells anything.
+ *
+ * Every surface that used to present it sits behind a gate that cannot close
+ * any more (see `entitlementsFor`), so nothing routes here in practice. This
+ * redirect makes that a guarantee rather than a consequence — a stale deep
+ * link, a restored navigation state, or a stray `router.push` lands on Today
+ * instead of a paywall. It also takes the Restore Purchases button out of
+ * reach, which is the only place in the app that offered one.
+ *
+ * The sheet below is left whole and unmounted: it is the work to un-delete if
+ * monetization ever returns, and deleting it is a later cleanup that also
+ * removes the RevenueCat SDK.
+ */
+export default function PremiumScreen() {
+  return <Redirect href="/(app)/(tabs)" />;
+}
+
 /** Entrance choreography: hero, then the comparison, then the decision. */
 const STAGGER_MS = 70;
 
-export default function PremiumScreen() {
+/**
+ * Dead code — see `PremiumScreen`. Retained verbatim, and deliberately not
+ * exported: nothing should be able to mount a paywall by importing it. The
+ * name keeps its capital (rules-of-hooks reads it as a component), so the
+ * unused-binding rule is silenced here rather than by an `_` prefix.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- intentionally unmounted; see above.
+function PremiumSheet() {
   const router = useRouter();
   const { entitlements, origin, environment, purchase, restore, refresh } = useSubscription();
   const products = useProducts();

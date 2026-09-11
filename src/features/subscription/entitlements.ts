@@ -79,7 +79,10 @@ export interface Entitlements {
 const FREE: Entitlements = {
   tier: 'free',
   isPro: false,
-  planLabel: 'Free',
+  // Ocular ships free, so there is no second plan to contrast this one with.
+  // "Ocular" rather than "Free" keeps Profile's plan row reading as a product
+  // name instead of a tier in a price list that no longer exists.
+  planLabel: 'Ocular',
   dailyCheckInLimit: FREE_DAILY_CHECK_IN_LIMIT,
   visibleSessionLimit: FREE_VISIBLE_SESSION_LIMIT,
   hasFullInsights: false,
@@ -117,11 +120,16 @@ const BY_TIER: Record<SubscriptionTier, Entitlements> = {
  * `tier` stays `free` because that is the honest answer to "what has been
  * verified?"; UI that must not flash an upgrade prompt should read
  * `status` from `useSubscription` rather than inferring it from here.
+ *
+ * `isPro` is true for the same reason `entitlementsFor` grants everything: the
+ * app is free, so there is no state — resolved or pending — in which a
+ * capability is withheld. It stays a full-access record so no consumer can
+ * observe a moment where this differs from a resolved one.
  */
 export const PENDING_ENTITLEMENTS: Entitlements = {
   tier: 'free',
-  isPro: false,
-  planLabel: 'Free',
+  isPro: true,
+  planLabel: 'Ocular',
   dailyCheckInLimit: null,
   visibleSessionLimit: null,
   hasFullInsights: true,
@@ -141,8 +149,18 @@ export function asSubscriptionTier(value: unknown): SubscriptionTier | null {
     : null;
 }
 
+/**
+ * What this user may do.
+ *
+ * **Ocular ships free: every tier resolves to full access.** The tier record
+ * still supplies `tier` and `planLabel` — the honest answer to "what was
+ * verified?" — but every capability is overwritten by `PRO`, so no gate
+ * anywhere can close. `FREE`'s limits are kept above rather than deleted
+ * because they are the policy this line suspends, not a mistake; restoring
+ * monetization is deleting the `...PRO` spread.
+ */
 export function entitlementsFor(tier: SubscriptionTier): Entitlements {
-  return BY_TIER[tier];
+  return { ...BY_TIER[tier], ...PRO };
 }
 
 // ── Gate: daily check-ins ────────────────────────────────────────────────────
